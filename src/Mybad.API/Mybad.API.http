@@ -1,0 +1,6 @@
+@Mybad.API_HostAddress = http://localhost:5138
+
+GET {{Mybad.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
