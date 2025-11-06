@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{151BB809
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenDotaService.Tests", "tests\OpenDotaService.Tests\OpenDotaService.Tests.csproj", "{E57CECDE-F38A-42D2-A70C-6EF64DB1944E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoreHeroMatchupsTests", "CoreHeroMatchupsTests\CoreHeroMatchupsTests.csproj", "{ADA18899-FC7B-4762-8052-C457A26D3365}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{E57CECDE-F38A-42D2-A70C-6EF64DB1944E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E57CECDE-F38A-42D2-A70C-6EF64DB1944E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E57CECDE-F38A-42D2-A70C-6EF64DB1944E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADA18899-FC7B-4762-8052-C457A26D3365}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADA18899-FC7B-4762-8052-C457A26D3365}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADA18899-FC7B-4762-8052-C457A26D3365}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADA18899-FC7B-4762-8052-C457A26D3365}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,6 +55,7 @@ Global
 		{44D0E7C5-9063-4CBE-B8DA-E3AC4F056855} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{A9546480-63DC-48BD-89B7-BD613A4A01DB} = {44D0E7C5-9063-4CBE-B8DA-E3AC4F056855}
 		{E57CECDE-F38A-42D2-A70C-6EF64DB1944E} = {151BB809-F5D9-417F-999F-82F1AC961BE9}
+		{ADA18899-FC7B-4762-8052-C457A26D3365} = {151BB809-F5D9-417F-999F-82F1AC961BE9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {54D1A7DD-C8D4-42E3-8C9F-A6CCCF84B8D6}
