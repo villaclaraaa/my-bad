@@ -15,77 +15,6 @@ namespace Mybad.Services.OpenDota;
 public class OpendotaProvider
 {
 	private static string _urlPath = "https://api.opendota.com/api/";
-
-	public async Task<BaseResponse> GetData(BaseRequest request)
-	{
-		var task = request switch
-		{
-			WardLogSingleMatchRequest req => GetWardsInfoForMatch(req),
-			WardLogRequest req => GetWardsLogInfo(req),
-			WardMapRequest req => GetWardsPlacementMap(req),
-			_ => throw new NotImplementedException($"{nameof(OpendotaProvider)} does not have implementations with this request type.")
-		};
-
-		return await task;
-	}
-
-	private async Task<T?> ReadData<T>(BaseRequest request)
-	{
-		using var http = new HttpClient();
-		var response = await http.GetFromJsonAsync<T>(_urlPath);
-		return response;
-	}
-
-	private async Task<BaseResponse> GetWardsPlacementMap(WardMapRequest request)
-	{
-		using var http = new HttpClient();
-		//var response = await http.GetFromJsonAsync<WardsInfo>(_urlPath + $"players/136996088/matches?limit={request.MatchesCount}");
-
-		try
-		{
-			var apiResponse = await http.GetFromJsonAsync<WardPlacementMap>(_urlPath + $"players/136996088/wardmap?having=100");
-
-			if (apiResponse == null)
-			{
-				throw new InvalidOperationException();
-			}
-
-			var reader = new WardsPlacementMapReader();
-
-			return reader.ConvertWardsPlacementMap(apiResponse);
-		}
-		catch (Exception)
-		{
-			throw;
-		}
-	}
-
-	private async Task<BaseResponse> GetWardsInfoForMatch(WardLogSingleMatchRequest request)
-	{
-		var accountId = request.AccountId ?? 0;
-		try
-		{
-			using var http = new HttpClient();
-			var response = await http.GetFromJsonAsync<MatchWardLogInfo>(_urlPath + $"matches/{request.MatchId}");
-
-			if (response == null)
-			{
-				throw new InvalidOperationException();
-			}
-
-			var reader = new WardsPlacementMapReader();
-
-			return reader.ConvertWardsLogMatch(response, accountId);
-
-		}
-		catch (Exception)
-		{
-			throw;
-		}
-
-		throw new NotImplementedException();
-	}
-
 	/*
 	 * Flow
 	 * 1. Get player Id 
@@ -166,17 +95,5 @@ public class OpendotaProvider
 		//}
 
 		return reader.ConvertWardsLogManyMathes(result.ToList()!, (long)request.AccountId);
-	}
-
-	private async Task<BaseResponse> GetHeroesInfo(string url)
-	{
-		throw new NotImplementedException();
-	}
-
-
-	private async Task<MatchWardLogInfo> DownloadMatchLogInfo(string url)
-	{
-		throw new NotImplementedException();
-
 	}
 }

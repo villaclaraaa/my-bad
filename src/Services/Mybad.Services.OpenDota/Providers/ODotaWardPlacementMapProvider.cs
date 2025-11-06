@@ -9,6 +9,8 @@ namespace Mybad.Services.OpenDota.Providers;
 
 public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, WardsMapPlacementResponse>
 {
+	private static string _urlPath = "https://api.opendota.com/api/";
+
 	public async Task<WardsMapPlacementResponse> GetInfo(WardMapRequest request)
 	{
 		using var http = new HttpClient();
