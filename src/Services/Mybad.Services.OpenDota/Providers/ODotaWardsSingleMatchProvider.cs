@@ -17,16 +17,24 @@ public class ODotaWardsSingleMatchProvider : IInfoProvider<WardLogSingleMatchReq
 		try
 		{
 			using var http = new HttpClient();
-			var response = await http.GetFromJsonAsync<MatchWardLogInfo>(_urlPath + $"matches/{request.MatchId}");
+			var apiResponse = await http.GetFromJsonAsync<MatchWardLogInfo>(_urlPath + $"matches/{request.MatchId}");
 
-			if (response == null)
+			if (apiResponse == null)
 			{
 				throw new InvalidOperationException();
 			}
 
 			var reader = new WardsPlacementMapReader();
 
-			return reader.ConvertWardsLogMatch(response, accountId);
+			var (obses, sens) = reader.ConvertWardsLogMatch(apiResponse, accountId);
+			var response = new WardsLogMatchResponse()
+			{
+				Id = 1,
+				ObserverWardsLog = obses,
+				SentryWardsLog = sens
+			};
+
+			return response;
 
 		}
 		catch (Exception)

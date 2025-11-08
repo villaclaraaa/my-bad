@@ -21,22 +21,21 @@ public class ApiResponseConverterTests
 		// Act 
 		var data = JsonSerializer.Deserialize<WardPlacementMap>(json);
 		var reader = new WardsPlacementMapReader();
-		var response = reader.ConvertWardsPlacementMap(data!);
+		var (obses, sens) = reader.ConvertToWardList(data!);
 		int oCount = 0, sCount = 0;
-		foreach (var kvp in response.ObserverWards)
+		foreach (var kvp in obses)
 		{
 			oCount += kvp.Amount;
 		}
 
-		foreach (var kvp in response.SentryWards)
+		foreach (var kvp in sens)
 		{
 			sCount += kvp.Amount;
 		}
 
 		// Assert
-		Assert.NotNull(response);
-		Assert.Equal(distinctObsCount, response.ObserverWards.Count);
-		Assert.Equal(distinctSenCount, response.SentryWards.Count);
+		Assert.Equal(distinctObsCount, obses.Count);
+		Assert.Equal(distinctSenCount, sens.Count);
 		Assert.Equal(obsCount, oCount);
 		Assert.Equal(senCount, sCount);
 	}
@@ -102,17 +101,16 @@ public class ApiResponseConverterTests
 		// Act 
 		var data = JsonSerializer.Deserialize<MatchWardLogInfo>(json);
 		var reader = new WardsPlacementMapReader();
-		var response = reader.ConvertWardsLogMatch(data!, accountId);
+		var (obses, sens) = reader.ConvertWardsLogMatch(data!, accountId);
 
 		// Assert
-		Assert.NotNull(response);
-		Assert.Equal(obsCount, response.ObserverWardsLog.Count);
-		Assert.Equal(senCount, response.SentryWardsLog.Count);
-		Assert.Equivalent(firstObs, response.ObserverWardsLog[0]);
-		Assert.Equivalent(secondObs, response.ObserverWardsLog[1]);
-		Assert.Equivalent(thirdObs, response.ObserverWardsLog[2]);
-		Assert.Equivalent(firstSentry, response.SentryWardsLog[0]);
-		Assert.Equivalent(secondSentry, response.SentryWardsLog[1]);
-		Assert.Equivalent(thirdSentry, response.SentryWardsLog[2]);
+		Assert.Equal(obsCount, obses.Count);
+		Assert.Equal(senCount, sens.Count);
+		Assert.Equivalent(firstObs, obses[0]);
+		Assert.Equivalent(secondObs, obses[1]);
+		Assert.Equivalent(thirdObs, obses[2]);
+		Assert.Equivalent(firstSentry, sens[0]);
+		Assert.Equivalent(secondSentry, sens[1]);
+		Assert.Equivalent(thirdSentry, sens[2]);
 	}
 }
