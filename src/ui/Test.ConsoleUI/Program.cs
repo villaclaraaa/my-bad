@@ -14,13 +14,10 @@
 //Console.WriteLine("END");
 
 
-using Mybad.Services.OpenDota.Cachers;
-
 //var req = new WardMapRequest(136996088);
 
 //IInfoProvider<WardMapRequest, WardsMapPlacementResponse> provider = new ODotaWardPlacementMapProvider();
 //var responce = await provider.GetInfo(req);
-
 
 //var response = await provider.GetInfo(req);
 
@@ -38,13 +35,6 @@ using Mybad.Services.OpenDota.Cachers;
 //{
 //    Console.WriteLine((HeroesEnum)hero);
 //}
-
-
-int minRank = 70;
-
-var cacher = new ODotaHeroMatchupCacher();
-await cacher.CachePublicMatchesInfo(minRank);
-
 
 
 //empty data filling
