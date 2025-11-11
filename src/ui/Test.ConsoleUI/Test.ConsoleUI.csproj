@@ -14,8 +14,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Mybad.Core\Mybad.Core.csproj" />
-    <ProjectReference Include="..\Services\Mybad.Services.OpenDota\Mybad.Services.OpenDota.csproj" />
+    <ProjectReference Include="..\..\api\Mybad.API\Mybad.API.csproj" />
+    <ProjectReference Include="..\..\api\Mybad.Core.Services\Mybad.Services.OpenDota\Mybad.Services.OpenDota.csproj" />
+    <ProjectReference Include="..\..\api\Mybad.Core\Mybad.Core.csproj" />
+    <ProjectReference Include="..\..\api\Mybad.Storage\Mybad.Storage.csproj" />
   </ItemGroup>
+
+  
 
 </Project>

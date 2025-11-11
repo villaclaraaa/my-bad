@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mybad.Core\Mybad.Core.csproj" />
-    <ProjectReference Include="..\Services\Mybad.Services.OpenDota\Mybad.Services.OpenDota.csproj" />
+    <ProjectReference Include="..\Mybad.Storage\Mybad.Storage.csproj" />
   </ItemGroup>
 
 </Project>
