@@ -1,9 +1,9 @@
-﻿using System.Net.Http.Json;
-using Mybad.Core;
+﻿using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 using Mybad.Services.OpenDota.ApiResponseModels;
 using Mybad.Services.OpenDota.ApiResponseReaders;
+using System.Net.Http.Json;
 
 namespace Mybad.Services.OpenDota.Providers;
 
@@ -13,7 +13,7 @@ public class ODotaWardsSingleMatchProvider : IInfoProvider<WardLogSingleMatchReq
 
 	public async Task<WardsLogMatchResponse> GetInfo(WardLogSingleMatchRequest request)
 	{
-		var accountId = request.AccountId ?? 0;
+		var accountId = request.AccountId;
 		try
 		{
 			using var http = new HttpClient();
@@ -31,7 +31,8 @@ public class ODotaWardsSingleMatchProvider : IInfoProvider<WardLogSingleMatchReq
 			{
 				Id = 1,
 				ObserverWardsLog = obses,
-				SentryWardsLog = sens
+				SentryWardsLog = sens,
+				AccountId = accountId
 			};
 
 			return response;

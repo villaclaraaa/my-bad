@@ -1,9 +1,9 @@
-﻿using System.Net.Http.Json;
-using Mybad.Core;
+﻿using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 using Mybad.Services.OpenDota.ApiResponseModels;
 using Mybad.Services.OpenDota.ApiResponseReaders;
+using System.Net.Http.Json;
 
 namespace Mybad.Services.OpenDota.Providers;
 
@@ -32,6 +32,7 @@ public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, Wards
 				Id = 1,
 				ObserverWards = obses,
 				SentryWards = sens,
+				AccountId = request.AccountId
 			};
 			return response;
 		}

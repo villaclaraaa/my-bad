@@ -1,6 +1,6 @@
 ﻿namespace Mybad.Core.Requests;
 
-public class WardLogSingleMatchRequest : BaseRequest
+public class WardLogSingleMatchRequest : BaseRequest, IAccountPiece, IMatchPiece
 {
 	public WardLogSingleMatchRequest(long accountId, long matchId)
 	{
@@ -8,5 +8,6 @@ public class WardLogSingleMatchRequest : BaseRequest
 		MatchId = matchId;
 	}
 
-	public long MatchId { get; set; }
+	public required long MatchId { get; init; }
+	public required long AccountId { get; init; }
 }

@@ -1,10 +1,10 @@
-﻿using System.Text.Json;
-using Mybad.Core;
+﻿using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 using Mybad.Core.Responses.Entries;
 using Mybad.Services.OpenDota.ApiResponseModels;
 using Mybad.Services.OpenDota.ApiResponseReaders;
+using System.Text.Json;
 
 namespace Mybad.Services.OpenDota.Providers;
 
@@ -92,7 +92,7 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 			var apiResponse = JsonSerializer.Deserialize<MatchWardLogInfo>(json);
 
 			var reader = new WardsPlacementMapReader();
-			var obses = reader.ConvertWardsLogMatch(apiResponse, request.AccountId.Value).obses;
+			var obses = reader.ConvertWardsLogMatch(apiResponse!, request.AccountId).obses;
 
 			if (!obses.Any())
 			{
