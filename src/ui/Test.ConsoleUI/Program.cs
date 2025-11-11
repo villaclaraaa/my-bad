@@ -1,4 +1,6 @@
-﻿//IRequestService service = new OpendotaProvider();
+﻿Console.WriteLine("1");
+
+//IRequestService service = new OpendotaProvider();
 //BaseRequest req = new WardLogRequest(136996088);
 
 //var a = await service.GetData(req);
