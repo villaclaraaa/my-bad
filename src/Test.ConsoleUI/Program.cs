@@ -14,18 +14,14 @@
 //Console.WriteLine("END");
 
 
-using Mybad.Core;
-using Mybad.Core.Requests;
-using Mybad.Core.Responses;
+using Mybad.Services.OpenDota.Cachers;
 
 //var req = new WardMapRequest(136996088);
 
 //IInfoProvider<WardMapRequest, WardsMapPlacementResponse> provider = new ODotaWardPlacementMapProvider();
 //var responce = await provider.GetInfo(req);
 
-var req = new HeroMatchupRequest(2);
 
-IInfoProvider<HeroMatchupRequest, HeroMatchupResponse> provider = new ODotaHeroMatchupProvider();
 //var response = await provider.GetInfo(req);
 
 //foreach (var item in response.HeroMatchups)
@@ -46,9 +42,8 @@ IInfoProvider<HeroMatchupRequest, HeroMatchupResponse> provider = new ODotaHeroM
 
 int minRank = 70;
 
-await ODotaHeroMatchupProvider.CachePublicMatchesInfo(minRank);
-
-
+var cacher = new ODotaHeroMatchupCacher();
+await cacher.CachePublicMatchesInfo(minRank);
 
 
 

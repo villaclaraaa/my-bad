@@ -1,4 +1,5 @@
-﻿using Mybad.Core.Models;
+﻿using Mybad.Core.Converters;
+using Mybad.Core.Models;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 using System.Text.Json;
@@ -7,7 +8,7 @@ namespace Mybad.Core.Providers
 {
     public class CoreHeroMatchupProvider : IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>
     {
-        private static async Task<(List<int> calcualtedBestHeroes, List<int> bestVersus, List<int> bestWith)> FindBestHeroVsEnemyWithAlly(List<int> enemyIds, List<int> allyIds)
+        private static async Task<HeroMatchupResponse> FindBestHeroVsEnemyWithAlly(List<int> enemyIds, List<int> allyIds)
         {
             string enemyMatchupsFilePath = @"C:\Users\Andrew\Desktop\enemyMatchups.json";
             string allyMatchupsFilePath = @"C:\Users\Andrew\Desktop\allyMatchups.json";
@@ -76,15 +77,31 @@ namespace Mybad.Core.Providers
 
             heroRatingTotal = heroRatingTotal.OrderByDescending(r => r.Value).ToDictionary();
 
-            return (heroRatingTotal.Keys.Take(5).ToList(),
-                    heroRatingVsEnemy.Keys.Take(5).ToList(),
-                    heroRatingWithAlly.Keys.Take(5).ToList());
+            var calculatedBestHeroes = new List<HeroMatchupModel>();
+            foreach (var item in heroRatingTotal.Take(5))
+            {
+                calculatedBestHeroes.Add(new HeroMatchupModel() { HeroId = item.Key, Rating = item.Value });
+            }
+            var calculatedBestVersus = new List<HeroMatchupModel>();
+            foreach (var item in heroRatingTotal.Take(5))
+            {
+                calculatedBestVersus.Add(new HeroMatchupModel() { HeroId = item.Key, Rating = item.Value });
+            }
+            var calculatedBestWith = new List<HeroMatchupModel>();
+            foreach (var item in heroRatingTotal.Take(5))
+            {
+                calculatedBestWith.Add(new HeroMatchupModel() { HeroId = item.Key, Rating = item.Value });
+            }
+
+
+            var converter = new HeroMatchupConverter();
+
+            return converter.ConvertHeroMatchups(calculatedBestHeroes, calculatedBestVersus, calculatedBestWith);
         }
 
         public async Task<HeroMatchupResponse> GetInfo(HeroMatchupRequest request)
         {
-            var r = await FindBestHeroVsEnemyWithAlly(request.EnemyIds, request.AllyIds);
-            var response = new HeroMatchupResponse() { BestCalculated = r.calcualtedBestHeroes, BestVersus = r.bestVersus, BestWith = r.bestWith };
+            return await FindBestHeroVsEnemyWithAlly(request.EnemyIds, request.AllyIds);
         }
     }
 
