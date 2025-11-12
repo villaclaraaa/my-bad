@@ -1,6 +1,6 @@
 ﻿using Mybad.Core.Models;
 
-namespace Mybad.Core;
+namespace Mybad.Core.Services;
 
 public interface IWardService
 {
