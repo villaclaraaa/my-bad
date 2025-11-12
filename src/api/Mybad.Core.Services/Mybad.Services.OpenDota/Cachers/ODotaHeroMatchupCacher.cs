@@ -1,7 +1,7 @@
 ﻿using Mybad.Services.OpenDota.ApiResponseModels;
 using System.Net.Http.Json;
 using System.Text.Json;
-using GamesResultsStat = Mybad.Core.Models.GamesResultsStat;
+using GamesResultsStat = Mybad.Core.Providers.CoreHeroMatchupProvider.GamesResultsStat;
 
 namespace Mybad.Services.OpenDota.Cachers
 {

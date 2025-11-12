@@ -1,9 +1,8 @@
 ﻿using Mybad.Core.Enums;
-using Mybad.Core.Models;
 using Mybad.Core.Responses;
 using Mybad.Core.Responses.Entries;
 
-namespace Mybad.Core.Converters
+namespace Mybad.Core.Providers.CoreHeroMatchupProvider
 {
 	internal class HeroMatchupConverter
 	{

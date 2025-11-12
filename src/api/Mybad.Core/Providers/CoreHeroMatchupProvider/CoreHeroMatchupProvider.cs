@@ -1,10 +1,9 @@
 ﻿using Mybad.Core.Converters;
-using Mybad.Core.Models;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 using System.Text.Json;
 
-namespace Mybad.Core.Providers
+namespace Mybad.Core.Providers.CoreHeroMatchupProvider
 {
     public class CoreHeroMatchupProvider : IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>
     {

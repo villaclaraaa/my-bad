@@ -1,6 +1,6 @@
 ﻿namespace Mybad.Storage.DB.Entities;
 
-public class Ward
+public class WardEntity
 {
 	/// <summary>
 	/// Gets or sets X position of the ward.

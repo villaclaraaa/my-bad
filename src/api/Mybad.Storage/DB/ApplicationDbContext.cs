@@ -10,5 +10,5 @@ public class ApplicationDbContext : DbContext
 	{
 	}
 
-	public DbSet<Ward> Wards { get; set; } = default!;
+	public DbSet<WardEntity> Wards { get; set; } = default!;
 }
