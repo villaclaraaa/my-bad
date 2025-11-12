@@ -1,7 +1,10 @@
-﻿namespace Mybad.Core.Requests;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Mybad.Core.Requests;
 
 public class WardMapRequest : BaseRequest, IAccountPiece
 {
+	[SetsRequiredMembers]
 	public WardMapRequest(long accountId)
 	{
 		AccountId = accountId;
