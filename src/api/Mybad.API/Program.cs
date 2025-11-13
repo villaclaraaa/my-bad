@@ -1,9 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using Mybad.Storage.DB;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+var con = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+	options.UseNpgsql(con));
 
 var app = builder.Build();
 
