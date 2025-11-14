@@ -11,14 +11,14 @@ public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, Wards
 {
 	private static string _urlPath = "https://api.opendota.com/api/";
 
-	public async Task<WardsMapPlacementResponse> GetInfo(WardMapRequest request)
+	public async Task<WardsMapPlacementResponse> GetInfoAsync(WardMapRequest request)
 	{
 		using var http = new HttpClient();
 		//var response = await http.GetFromJsonAsync<WardsInfo>(_urlPath + $"players/136996088/matches?limit={request.MatchesCount}");
 
 		try
 		{
-			var apiResponse = await http.GetFromJsonAsync<WardPlacementMap>(_urlPath + $"players/136996088/wardmap?having=100");
+			var apiResponse = await http.GetFromJsonAsync<WardPlacementMap>(_urlPath + $"players/{request.AccountId}/wardmap?having=100");
 
 			if (apiResponse == null)
 			{

@@ -10,7 +10,7 @@ namespace Mybad.Services.OpenDota.Providers;
 
 public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest, WardsEfficiencyResponse>
 {
-	public async Task<WardsEfficiencyResponse> GetInfo(WardsEfficiencyRequest request)
+	public async Task<WardsEfficiencyResponse> GetInfoAsync(WardsEfficiencyRequest request)
 	{
 		return (WardsEfficiencyResponse)await GetWardsLogInfo(request);
 	}

@@ -16,6 +16,7 @@ public interface IInfoProvider<TRequest, TResponse>
 	/// Gets the needed information.
 	/// </summary>
 	/// <param name="request">Request model instance, inherited from <see cref="BaseRequest"/>.</param>
-	/// <returns>Response model object, inherited from <see cref="BaseResponse"/>.</returns>
-	Task<TResponse> GetInfo(TRequest request);
+	/// <returns>Task representing asynchronous operation. 
+	/// Task result contains response model object, inherited from <see cref="BaseResponse"/>.</returns>
+	Task<TResponse> GetInfoAsync(TRequest request);
 }

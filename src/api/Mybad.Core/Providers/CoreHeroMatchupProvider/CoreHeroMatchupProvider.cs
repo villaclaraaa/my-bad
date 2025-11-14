@@ -97,7 +97,7 @@ namespace Mybad.Core.Providers.CoreHeroMatchupProvider
 			return converter.ConvertHeroMatchups(calculatedBestHeroes, calculatedBestVersus, calculatedBestWith);
 		}
 
-		public async Task<HeroMatchupResponse> GetInfo(HeroMatchupRequest request)
+		public async Task<HeroMatchupResponse> GetInfoAsync(HeroMatchupRequest request)
 		{
 			return await FindBestHeroVsEnemyWithAlly(request.EnemyIds, request.AllyIds);
 		}

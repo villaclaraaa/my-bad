@@ -11,7 +11,7 @@ public class ODotaWardsSingleMatchProvider : IInfoProvider<WardLogSingleMatchReq
 {
 	private static string _urlPath = "https://api.opendota.com/api/";
 
-	public async Task<WardsLogMatchResponse> GetInfo(WardLogSingleMatchRequest request)
+	public async Task<WardsLogMatchResponse> GetInfoAsync(WardLogSingleMatchRequest request)
 	{
 		var accountId = request.AccountId;
 		try
