@@ -9,15 +9,20 @@ namespace Mybad.Services.OpenDota.Providers;
 
 public class ODotaWardsSingleMatchProvider : IInfoProvider<WardLogSingleMatchRequest, WardsLogMatchResponse>
 {
-	private static string _urlPath = "https://api.opendota.com/api/";
+	private readonly IHttpClientFactory _factory;
+
+	public ODotaWardsSingleMatchProvider(IHttpClientFactory factory)
+	{
+		_factory = factory;
+	}
 
 	public async Task<WardsLogMatchResponse> GetInfoAsync(WardLogSingleMatchRequest request)
 	{
 		var accountId = request.AccountId;
 		try
 		{
-			using var http = new HttpClient();
-			var apiResponse = await http.GetFromJsonAsync<MatchWardLogInfo>(_urlPath + $"matches/{request.MatchId}");
+			var http = _factory.CreateClient("ODota");
+			var apiResponse = await http.GetFromJsonAsync<MatchWardLogInfo>($"matches/{request.MatchId}");
 
 			if (apiResponse == null)
 			{

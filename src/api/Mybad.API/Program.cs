@@ -1,10 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Mybad.API.Endpoints;
-using Mybad.Core;
-using Mybad.Core.Requests;
-using Mybad.Core.Responses;
 using Mybad.Core.Services;
-using Mybad.Services.OpenDota.Providers;
+using Mybad.Services.OpenDota;
 using Mybad.Storage.DB;
 using Mybad.Storage.DB.Services;
 
@@ -15,9 +12,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// IInfo Providers registration
-builder.Services.AddScoped<IInfoProvider<WardMapRequest, WardsMapPlacementResponse>, ODotaWardPlacementMapProvider>();
-
 // Db registration
 var con = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -25,6 +19,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Core services + Db registration
 builder.Services.AddScoped<IWardService, WardsService>();
+
+// ODota Services registration including httpclient and info providers.
+builder.Services.AddODotaServices();
 
 var app = builder.Build();
 

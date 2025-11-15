@@ -15,7 +15,12 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 		return (WardsEfficiencyResponse)await GetWardsLogInfo(request);
 	}
 
-	private static string _urlPath = "https://api.opendota.com/api/";
+	private readonly IHttpClientFactory _factory;
+
+	public ODotaWardEfficiencyProvider(IHttpClientFactory factory)
+	{
+		_factory = factory;
+	}
 
 	/*
 	 * Flow
@@ -31,8 +36,8 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 	{
 		ArgumentNullException.ThrowIfNull(request.AccountId);
 
-		//using var http = new HttpClient();
-		//var response = await http.GetFromJsonAsync<List<RecentMatch>>(_urlPath + $"players/136996088/recentMatches");
+		//var http = _factory.CreateClient("ODota");
+		//var response = await http.GetFromJsonAsync<List<RecentMatch>>($"players/136996088/recentMatches");
 
 		//if (response == null)
 		//{

@@ -20,7 +20,7 @@ public class WardsService : IWardService
 	/// <inheritdoc/>
 	public async Task AddAsync(WardModel ward)
 	{
-		int deviation = 2;
+		int deviation = 2;  // this is approximate value of units where we can consider wards placed in same position
 
 		// check if ward in similar position already added
 		var existingWard = _dbContext.Wards.FirstOrDefault(x =>
@@ -57,16 +57,9 @@ public class WardsService : IWardService
 	/// <inheritdoc/>
 	public async Task DeleteAllForAccountAsync(long accountId)
 	{
-		try
-		{
-			var wards = _dbContext.Wards.Where(x => x.AccountId == accountId);
-			_dbContext.Wards.RemoveRange(wards);
-			await _dbContext.SaveChangesAsync();
-		}
-		catch
-		{
-			// ignore
-		}
+		var wards = _dbContext.Wards.Where(x => x.AccountId == accountId);
+		_dbContext.Wards.RemoveRange(wards);
+		await _dbContext.SaveChangesAsync();
 	}
 
 	/// <inheritdoc/>
