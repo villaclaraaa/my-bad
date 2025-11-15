@@ -10,7 +10,7 @@ public static class WardEndpoints
 {
 	public static RouteGroupBuilder MapWardEndpoints(this IEndpointRouteBuilder routes)
 	{
-		var group = routes.MapGroup("/wards").WithTags("Wards");
+		var group = routes.MapGroup("api/wards").WithTags("Wards");
 		// Define ward-related endpoints here
 		group.MapGet("map", GetWardsPlacementMap);
 		return group;
