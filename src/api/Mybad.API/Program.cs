@@ -19,6 +19,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Core services + Db registration
 builder.Services.AddScoped<IWardService, WardsService>();
+builder.Services.AddScoped<IParsedMatchWardInfoService, ParsedMatchWardInfoService>();
 
 // ODota Services registration including httpclient and info providers.
 builder.Services.AddODotaServices();
