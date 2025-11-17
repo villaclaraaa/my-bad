@@ -16,6 +16,12 @@ internal class RecentMatch
 	public long MatchId { get; set; }
 
 	/// <summary>
+	/// Gets or sets the epoch time when match started.
+	/// </summary>
+	[JsonPropertyName("start_time")]
+	public long StartTimeSecondsEpoch { get; set; }
+
+	/// <summary>
 	/// Gets or sets line id for the maatch. 
 	/// <br/>It has <c>null</c> if match was not parsed yet.
 	/// </summary>

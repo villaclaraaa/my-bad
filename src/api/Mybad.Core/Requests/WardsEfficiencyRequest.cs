@@ -1,10 +1,14 @@
-﻿namespace Mybad.Core.Requests;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Mybad.Core.Requests;
 
 public class WardsEfficiencyRequest : BaseRequest, IAccountPiece
 {
-	public WardsEfficiencyRequest(int accountId)
+	[SetsRequiredMembers]
+	public WardsEfficiencyRequest(long accountId)
 	{
 		AccountId = accountId;
 	}
+
 	public required long AccountId { get; init; }
 }

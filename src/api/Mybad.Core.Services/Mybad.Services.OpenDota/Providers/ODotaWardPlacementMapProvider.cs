@@ -1,4 +1,5 @@
-﻿using Mybad.Core;
+﻿using Microsoft.Extensions.Logging;
+using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 using Mybad.Services.OpenDota.ApiResponseModels;
@@ -9,20 +10,26 @@ namespace Mybad.Services.OpenDota.Providers;
 
 public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, WardsMapPlacementResponse>
 {
-	private static string _urlPath = "https://api.opendota.com/api/";
+	private readonly IHttpClientFactory _factory;
+	private readonly ILogger<ODotaWardPlacementMapProvider> _logger;
 
-	public async Task<WardsMapPlacementResponse> GetInfo(WardMapRequest request)
+	public ODotaWardPlacementMapProvider(IHttpClientFactory factory, ILogger<ODotaWardPlacementMapProvider> logger)
 	{
-		using var http = new HttpClient();
-		//var response = await http.GetFromJsonAsync<WardsInfo>(_urlPath + $"players/136996088/matches?limit={request.MatchesCount}");
+		_factory = factory;
+		_logger = logger;
+	}
+
+	public async Task<WardsMapPlacementResponse> GetInfoAsync(WardMapRequest request)
+	{
+		var http = _factory.CreateClient("ODota");
 
 		try
 		{
-			var apiResponse = await http.GetFromJsonAsync<WardPlacementMap>(_urlPath + $"players/136996088/wardmap?having=100");
+			var apiResponse = await http.GetFromJsonAsync<WardPlacementMap>($"players/{request.AccountId}/wardmap?having=100");
 
 			if (apiResponse == null)
 			{
-				throw new InvalidOperationException();
+				throw new NullReferenceException($"OpenDota API returned null for ward placement map for accountid {request.AccountId}.");
 			}
 
 			var reader = new WardsPlacementMapReader();
@@ -36,8 +43,9 @@ public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, Wards
 			};
 			return response;
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			_logger.LogWarning("Exception when getting ward placement map for account {AccountId}. {ex}", request.AccountId, ex);
 			throw;
 		}
 	}

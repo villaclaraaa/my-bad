@@ -2,7 +2,9 @@
 
 namespace Mybad.Core.Responses;
 
-public class WardsEfficiencyResponse : BaseResponse
+public class WardsEfficiencyResponse : BaseResponse, IAccountPiece
 {
-	public IEnumerable<WardEfficiency> ObserverWards { get; set; } = [];
+	public ICollection<WardEfficiency> ObserverWards { get; set; } = [];
+	public ICollection<long> IncludedMatches { get; set; } = [];
+	public long AccountId { get; init; }
 }

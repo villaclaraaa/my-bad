@@ -23,6 +23,12 @@ internal class MatchWardLogInfo
 	public int Duration { get; set; }
 
 	/// <summary>
+	/// Gets or sets ODota specific data about the match represented by array of od_data.
+	/// </summary>
+	[JsonPropertyName("od_data")]
+	public Oddata Oddata { get; set; } = null!;
+
+	/// <summary>
 	/// Gets or sets list of <see cref="Player"/> objects which is players in the match.
 	/// </summary>
 	[JsonPropertyName("players")]
@@ -298,4 +304,16 @@ internal record class WardLeftLogEntry : WardLogEntry
 	/// </summary>
 	[JsonPropertyName("ehandle")]
 	public override long EHandle { get; set; }
+}
+
+/// <summary>
+/// Represents od_data object in the api response.
+/// </summary>
+internal class Oddata
+{
+	/// <summary>
+	/// Gets or sets if the match data has been parsed by ODota.
+	/// </summary>
+	[JsonPropertyName("has_parsed")]
+	public bool IsMatchParsed { get; set; }
 }

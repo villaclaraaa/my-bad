@@ -12,6 +12,8 @@ public class ApplicationDbContext : DbContext
 
 	public DbSet<WardEntity> Wards { get; set; } = default!;
 
+	public DbSet<ParsedMatchWardInfo> ParsedMatchWardInfos { get; set; } = default!;
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		modelBuilder.Entity<WardEntity>(b =>
@@ -21,6 +23,13 @@ public class ApplicationDbContext : DbContext
 			b.HasIndex(w => w.MatchId);
 			b.HasIndex(w => w.AccountId);
 			b.HasIndex(w => new { w.MatchId, w.AccountId, w.PosX, w.PosY });
+		});
+
+		modelBuilder.Entity<ParsedMatchWardInfo>(b =>
+		{
+			b.HasKey(p => new { p.MatchId, p.AccountId });
+
+			b.HasIndex(p => new { p.MatchId, p.AccountId });
 		});
 	}
 }
