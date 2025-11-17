@@ -27,7 +27,9 @@ public class ApplicationDbContext : DbContext
 
 		modelBuilder.Entity<ParsedMatchWardInfo>(b =>
 		{
-			b.HasKey(p => p.MatchId);
+			b.HasKey(p => new { p.MatchId, p.AccountId });
+
+			b.HasIndex(p => new { p.MatchId, p.AccountId });
 		});
 	}
 }

@@ -1,4 +1,5 @@
-﻿using Mybad.Core;
+﻿using Microsoft.Extensions.Logging;
+using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 using Mybad.Services.OpenDota.ApiResponseModels;
@@ -10,10 +11,12 @@ namespace Mybad.Services.OpenDota.Providers;
 public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, WardsMapPlacementResponse>
 {
 	private readonly IHttpClientFactory _factory;
+	private readonly ILogger<ODotaWardPlacementMapProvider> _logger;
 
-	public ODotaWardPlacementMapProvider(IHttpClientFactory factory)
+	public ODotaWardPlacementMapProvider(IHttpClientFactory factory, ILogger<ODotaWardPlacementMapProvider> logger)
 	{
 		_factory = factory;
+		_logger = logger;
 	}
 
 	public async Task<WardsMapPlacementResponse> GetInfoAsync(WardMapRequest request)
@@ -26,7 +29,7 @@ public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, Wards
 
 			if (apiResponse == null)
 			{
-				throw new InvalidOperationException();
+				throw new NullReferenceException($"OpenDota API returned null for ward placement map for accountid {request.AccountId}.");
 			}
 
 			var reader = new WardsPlacementMapReader();
@@ -40,8 +43,9 @@ public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, Wards
 			};
 			return response;
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			_logger.LogWarning("Exception when getting ward placement map for account {AccountId}. {ex}", request.AccountId, ex);
 			throw;
 		}
 	}

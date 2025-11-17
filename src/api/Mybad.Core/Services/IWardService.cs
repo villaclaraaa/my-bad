@@ -18,9 +18,10 @@ public interface IWardService
 	/// Gets all wards for a specific match.
 	/// </summary>
 	/// <param name="matchId">Match id to get info.</param>
+	/// <param name="accountId">Account id to get info.</param>
 	/// <returns>Task representing asynchronous operation. 
 	/// Task contains list of <see cref="WardModel"/> as <see cref="IEnumerable{T}"/>.</returns>
-	Task<IEnumerable<WardModel>> GetAllByMatchAsync(long matchId);
+	Task<IEnumerable<WardModel>> GetAllByMatchAsync(long matchId, long accountId);
 
 	/// <summary>
 	/// Gets all wards for a specific account.

@@ -17,26 +17,28 @@ public class ParsedMatchWardInfoService : IParsedMatchWardInfoService
 	}
 
 	/// <inheritdoc />
-	public async Task AddAsync(long matchId, DateTime playedAtDateUtc)
+	public async Task AddAsync(long matchId, long accountId, DateTime playedAtDateUtc)
 	{
 		await _dbContext.ParsedMatchWardInfos.AddAsync(new ParsedMatchWardInfo
 		{
 			MatchId = matchId,
-			PlayedAtDateUtc = playedAtDateUtc
+			AccountId = accountId,
+			PlayedAtDateUtc = playedAtDateUtc.ToUniversalTime()
 		});
 		await _dbContext.SaveChangesAsync();
 	}
 
 	/// <inheritdoc />
-	public async Task<bool> IsMatchParsedAsync(long matchId) =>
-		await _dbContext.ParsedMatchWardInfos.AnyAsync(x => x.MatchId == matchId);
+	public async Task<bool> IsMatchParsedAsync(long matchId, long accountId) =>
+		await _dbContext.ParsedMatchWardInfos.AnyAsync(x => x.MatchId == matchId && x.AccountId == accountId);
 
 	/// <inheritdoc />
-	public async Task RemoveAsync(long matchId)
+	public async Task RemoveAsync(long matchId, long accountId)
 	{
 		_dbContext.ParsedMatchWardInfos.Remove(new ParsedMatchWardInfo
 		{
-			MatchId = matchId
+			MatchId = matchId,
+			AccountId = accountId
 		});
 		await _dbContext.SaveChangesAsync();
 	}

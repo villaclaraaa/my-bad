@@ -45,8 +45,8 @@ public class WardsService : IWardService
 	}
 
 	/// <inheritdoc/>
-	public async Task<IEnumerable<WardModel>> GetAllByMatchAsync(long matchId) =>
-		await _dbContext.Wards.Where(x => x.MatchId == matchId)
+	public async Task<IEnumerable<WardModel>> GetAllByMatchAsync(long matchId, long accountId) =>
+		await _dbContext.Wards.Where(x => x.MatchId == matchId && x.AccountId == accountId)
 			.Select(x => x.MapToModel()).ToListAsync();
 
 	/// <inheritdoc/>
