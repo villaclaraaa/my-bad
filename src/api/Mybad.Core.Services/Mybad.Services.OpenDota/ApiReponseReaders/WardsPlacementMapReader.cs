@@ -175,8 +175,17 @@ internal class WardsPlacementMapReader
 		return response;
 	}
 
-	public List<WardModel> ConvertWardsToWardModel(List<WardLogEntry> wardLog, List<WardLeftLogEntry> wardLeftLog, bool isObs = true)
+	public List<WardModel> ConvertWardsToWardModel(MatchWardLogInfo apiReponse, long accountId, long matchId, bool isObs = true)
 	{
+		var playerInfo = apiReponse.Players.FirstOrDefault(x => x.AccountId == accountId);
+		if (playerInfo == null)
+		{
+			throw new InvalidOperationException();
+		}
+
+		var wardLog = playerInfo.ObsLog;
+		var wardLeftLog = playerInfo.ObsLeftLog;
+
 		var response = new List<WardModel>();
 		var defaultTime = isObs ? 360 : 420;
 
@@ -207,10 +216,11 @@ internal class WardsPlacementMapReader
 			{
 				PosX = (int)Math.Round(ward.X, MidpointRounding.AwayFromZero),
 				PosY = (int)Math.Round(ward.Y, MidpointRounding.AwayFromZero),
-				TimeLived = timeLived > defaultTime ? defaultTime : timeLived,
+				TimeLivedSeconds = timeLived > defaultTime ? defaultTime : timeLived,
 				WasDestroyed = timeLived != defaultTime,
-				Amount = 1 // TODO - amount of ward when creating WardsLogMatchResponse.
-						   // Dont know if i should increase count for all wards in same place.
+				Amount = 1,
+				MatchId = matchId,
+				AccountId = accountId
 			};
 			response.Add(wardL);
 		}

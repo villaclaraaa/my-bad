@@ -3,7 +3,7 @@ using Mybad.Storage.DB.Entities;
 
 namespace Mybad.Storage.DB.Mappers;
 
-internal static class WardMapper
+internal static class WardMapperExtensions
 {
 	public static WardEntity MapToEntity(this WardModel ward) =>
 		new()
