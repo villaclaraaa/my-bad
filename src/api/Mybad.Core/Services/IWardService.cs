@@ -14,6 +14,8 @@ public interface IWardService
 	/// <returns>Task representing asynchronous operation.</returns>
 	Task AddAsync(WardModel ward);
 
+	Task AddRangeAsync(IEnumerable<WardModel> wards);
+
 	/// <summary>
 	/// Gets all wards for a specific match.
 	/// </summary>

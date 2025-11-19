@@ -1,7 +1,17 @@
 ﻿namespace Mybad.Core.DomainModels;
 
-public class WardModel
+public class WardModel : IComparable<WardModel>
 {
+	public int CompareTo(WardModel? other)
+	{
+		int r = PosX.CompareTo(other!.PosX);
+		if (r != 0)
+		{
+			return r;
+		}
+		return PosY.CompareTo(other!.PosY);
+	}
+
 	/// <summary>
 	/// Gets or sets X position of the ward.
 	/// </summary>
