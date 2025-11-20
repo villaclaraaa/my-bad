@@ -2,7 +2,7 @@
 
 namespace Mybad.Core.Utility;
 
-public static class WardPosApproximator
+public static class WardModelExtensions
 {
 	public static List<WardModel> GetApproximatedList(this List<WardModel> wards)
 	{
