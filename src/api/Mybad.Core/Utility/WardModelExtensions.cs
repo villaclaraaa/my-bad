@@ -25,7 +25,7 @@ public static class WardModelExtensions
 				current.PosX = (current.PosX + wards[j].PosX) / 2;
 				current.PosY = (current.PosY + wards[j].PosY) / 2;
 				current.TimeLivedSeconds += wards[j].TimeLivedSeconds;
-				current.Amount++;
+				current.Amount += wards[j].Amount;
 				current.WasDestroyed = current.WasDestroyed || wards[j].WasDestroyed;
 				j++;
 			}

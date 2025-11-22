@@ -15,6 +15,13 @@ public interface IParsedMatchWardInfoService
 	Task AddAsync(long matchId, long accountId, DateTime playedAtDateUtc);
 
 	/// <summary>
+	/// Adds a list of parsed match records.
+	/// </summary>
+	/// <param name="list">IEnumerable of match records. Consists of (matchId, accountId, DateTime).</param>
+	/// <returns>Task representing asynchronous operation.</returns>
+	Task AddRangeAsync(IEnumerable<(long matchId, long accountId, DateTime playedAtDateUtc)> list);
+
+	/// <summary>
 	/// Deletes the parsed match record.
 	/// </summary>
 	/// <param name="matchId">Match id to delete.</param>
@@ -30,4 +37,12 @@ public interface IParsedMatchWardInfoService
 	/// <returns>Task representing asynchronous operation. 
 	/// Task result contains <b>true</b> is the match is parsed and info is added into other tables, otherwise <b>false</b>.</returns>
 	Task<bool> IsMatchParsedAsync(long matchId, long accountId);
+
+	/// <summary>
+	/// Gets the parsed matches saved in storage for given account.
+	/// </summary>
+	/// <param name="accountId">Account id.</param>
+	/// <returns>Task representing asynchronous operation.
+	/// Task result contains <see cref="IEnumerable{T}"/> of matchesIds.</returns>
+	Task<IEnumerable<long>> GetParsedMatchesForAccountAsync(long accountId);
 }

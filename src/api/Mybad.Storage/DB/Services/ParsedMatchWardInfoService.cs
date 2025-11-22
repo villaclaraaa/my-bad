@@ -23,10 +23,26 @@ public class ParsedMatchWardInfoService : IParsedMatchWardInfoService
 		{
 			MatchId = matchId,
 			AccountId = accountId,
-			PlayedAtDateUtc = playedAtDateUtc.ToUniversalTime()
+			PlayedAtDateUtc = playedAtDateUtc
 		});
 		await _dbContext.SaveChangesAsync();
 	}
+
+	/// <inheritdoc />
+	public async Task AddRangeAsync(IEnumerable<(long matchId, long accountId, DateTime playedAtDateUtc)> list)
+	{
+		await _dbContext.AddRangeAsync(list.Select(x => new ParsedMatchWardInfo
+		{
+			MatchId = x.matchId,
+			AccountId = x.accountId,
+			PlayedAtDateUtc = x.playedAtDateUtc
+		}));
+		await _dbContext.SaveChangesAsync();
+	}
+
+	/// <inheritdoc />
+	public async Task<IEnumerable<long>> GetParsedMatchesForAccountAsync(long accountId) =>
+		await _dbContext.ParsedMatchWardInfos.Where(x => x.AccountId == accountId).Select(x => x.MatchId).ToListAsync();
 
 	/// <inheritdoc />
 	public async Task<bool> IsMatchParsedAsync(long matchId, long accountId) =>

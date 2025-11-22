@@ -9,6 +9,7 @@ using Mybad.Core.Utility;
 using Mybad.Services.OpenDota.ApiResponseModels;
 using Mybad.Services.OpenDota.ApiResponseModels.Player;
 using Mybad.Services.OpenDota.ApiResponseReaders;
+using System.Collections.Concurrent;
 using System.Net.Http.Json;
 
 namespace Mybad.Services.OpenDota.Providers;
@@ -91,43 +92,120 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 			return response;
 		}
 
-		foreach (var match in recentMatchesResponse)
-		{
-			if (await _matchService.IsMatchParsedAsync(matchId: match.MatchId, accountId: request.AccountId))
-			{
-				continue;
-			}
+		/* 
+		 * Code below is using Parallel foreach to make foreach loop in parallel to be fast.
+		 * Uncomment this and comment code below this to make it work in parallel.
+		 * 
+		 * So basically the flow here is:
+		 * Remove already parsed matches from list.
+		 * For the rest call the http to get data for each match in parallel.
+		 * Add the wards info into concurrentBags (and parsedMatches too).
+		 * In the end add bulk of wards info and matches into storage using services.AddRangeAsync() methods.
+		 * Then common create and return response.
+		 */
 
+		// First remove already parsed matches. This is in different loop because we can not call dbcontext in parallel.
+		// Only exception is creating own dbcontext in method, but I do not want to do this.
+		foreach (var m in recentMatchesResponse)
+		{
+			if (await _matchService.IsMatchParsedAsync(m.MatchId, request.AccountId))
+			{
+				recentMatchesResponse.Remove(m);
+			}
+		}
+		// some thread safe lists.
+		var obses = new ConcurrentBag<WardModel>();
+		var errors = new ConcurrentBag<string>();
+		var includedMatches = new ConcurrentBag<(long matchId, long accountId, DateTime date)>();
+		await Parallel.ForEachAsync(recentMatchesResponse, async (match, _) =>
+		{
 			var matchRequest = await http.GetAsync($"matches/{match.MatchId}");
 			if (!matchRequest.IsSuccessStatusCode)
 			{
 				_logger.LogWarning("Failed to fetch match {MatchId} for account {AccountId}. Status code: {StatusCode}", match.MatchId, request.AccountId, matchRequest.StatusCode);
-				response.Errors.Add($"Failed to fetch match {match.MatchId}.");
-				continue;
+				errors.Add($"Failed to fetch match {match.MatchId}.");
+				return;
 			}
 
 			var matchDetailsResponse = await matchRequest.Content.ReadFromJsonAsync<MatchWardLogInfo>();
-
 			// Check if response is not valid or the match has not been parsed then skip.
 			if (matchDetailsResponse == null || !matchDetailsResponse.Oddata.IsMatchParsed)
 			{
-				continue;
+				return;
 			}
 
-			var obsesPerMatch = _reader.ConvertWardsToWardModel(matchDetailsResponse, request.AccountId, match.MatchId, true);
-			obsesPerMatch = obsesPerMatch.GetApproximatedList();
-
+			var obsesPerMatch = _reader.ConvertWardsToWardModel(matchDetailsResponse, request.AccountId, match.MatchId, true).GetApproximatedList();
+			foreach (var o in obsesPerMatch)
+			{
+				obses.Add(o);
+			}
 
 			// add wards per match into db and add matchId into parsed matches
-			await _wardService.AddRangeAsync(obsesPerMatch);
-			await _matchService.AddAsync(match.MatchId, request.AccountId, DateTimeOffset.FromUnixTimeSeconds(match.StartTimeSecondsEpoch).DateTime);
-			response.IncludedMatches.Add(match.MatchId);
-		}
+			includedMatches.Add((matchId: match.MatchId, accountId: request.AccountId, date: DateTimeOffset.FromUnixTimeSeconds(match.StartTimeSecondsEpoch).UtcDateTime));
+		});
+
+		await _wardService.AddRangeAsync(obses.ToList());
+		await _matchService.AddRangeAsync(includedMatches.ToList());
 
 		// Finally get updated wards list from storage and compose response
 		var newWardsList = await _wardService.GetAllForAccountAsync(request.AccountId);
 		var wardsList = newWardsList.ToList().GetApproximatedList();
 		response.ObserverWards = [.. wardsList.Select(w => ConvertToWardEfficiency(w))];
+		response.Errors = [.. errors];
+		response.IncludedMatches = (ICollection<long>)await _matchService.GetParsedMatchesForAccountAsync(request.AccountId);
+		/* */
+
+
+		/* 
+		 * Code below is using async/await but synchronoulsy foreach
+		 * Uncomment this and comment code above to swap.
+		 * 
+		 * Code flow is next:
+		 * foreach match
+		 * check if it is not parsed.
+		 * If not then call the http to get data for each match in parallel.
+		 * Convert wards for single match and add a bulk into storage.
+		 * Add match parsed into storage.
+		 * In the end creating common response.
+		 */
+		//foreach (var match in recentMatchesResponse)
+		//{
+		//	if (await _matchService.IsMatchParsedAsync(matchId: match.MatchId, accountId: request.AccountId))
+		//	{
+		//		continue;
+		//	}
+
+		//	var matchRequest = await http.GetAsync($"matches/{match.MatchId}");
+		//	if (!matchRequest.IsSuccessStatusCode)
+		//	{
+		//		_logger.LogWarning("Failed to fetch match {MatchId} for account {AccountId}. Status code: {StatusCode}", match.MatchId, request.AccountId, matchRequest.StatusCode);
+		//		response.Errors.Add($"Failed to fetch match {match.MatchId}.");
+		//		continue;
+		//	}
+
+		//	var matchDetailsResponse = await matchRequest.Content.ReadFromJsonAsync<MatchWardLogInfo>();
+
+		//	// Check if response is not valid or the match has not been parsed then skip.
+		//	if (matchDetailsResponse == null || !matchDetailsResponse.Oddata.IsMatchParsed)
+		//	{
+		//		continue;
+		//	}
+
+		//	var obsesPerMatch = _reader.ConvertWardsToWardModel(matchDetailsResponse, request.AccountId, match.MatchId, true);
+		//	obsesPerMatch = obsesPerMatch.GetApproximatedList();
+
+
+		//	// add wards per match into db and add matchId into parsed matches
+		//	await _wardService.AddRangeAsync(obsesPerMatch);
+		//	await _matchService.AddAsync(match.MatchId, request.AccountId, DateTimeOffset.FromUnixTimeSeconds(match.StartTimeSecondsEpoch).UtcDateTime);
+		//}
+
+		// Finally get updated wards list from storage and compose response
+		//var newWardsList = await _wardService.GetAllForAccountAsync(request.AccountId);
+		//var wardsList = newWardsList.ToList().GetApproximatedList();
+		//response.ObserverWards = [.. wardsList.Select(w => ConvertToWardEfficiency(w))];
+		//response.IncludedMatches = (ICollection<long>)await _matchService.GetParsedMatchesForAccountAsync(request.AccountId);
+		/* */
 
 		return response;
 	}
