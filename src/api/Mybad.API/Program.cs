@@ -19,11 +19,12 @@ builder.Services.AddSwaggerGen();
 // Db registration
 var con = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(con));
+	options.UseNpgsql(con));
 
-// Core services + Db registration
-builder.Services.AddScoped<IWardService, WardsService>();
+// Core services + Db implementations
 builder.Services.AddScoped<IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>, CoreHeroMatchupProvider>();
+
+builder.Services.AddScoped<IWardService, WardsService>();
 builder.Services.AddScoped<IMatchupService, MatchupService>();
 builder.Services.AddScoped<ICheckedMatchesService, CheckedMatchesService>();
 builder.Services.AddScoped<IParsedMatchWardInfoService, ParsedMatchWardInfoService>();
@@ -36,13 +37,16 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
 app.MapWardEndpoints();
 app.MapMatchupEndpoints();
+
+app.MapGet("/test", () => "xarosh")
+	.AllowAnonymous();
 
 app.Run();
