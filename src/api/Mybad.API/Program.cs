@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Mybad.API.Endpoints;
+using Mybad.Core;
+using Mybad.Core.Providers.CoreHeroMatchupProvider;
+using Mybad.Core.Requests;
+using Mybad.Core.Responses;
 using Mybad.Core.Services;
 using Mybad.Services.OpenDota;
 using Mybad.Storage.DB;
@@ -15,10 +19,13 @@ builder.Services.AddSwaggerGen();
 // Db registration
 var con = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseNpgsql(con));
+    options.UseNpgsql(con));
 
 // Core services + Db registration
 builder.Services.AddScoped<IWardService, WardsService>();
+builder.Services.AddScoped<IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>, CoreHeroMatchupProvider>();
+builder.Services.AddScoped<IMatchupService, MatchupService>();
+builder.Services.AddScoped<ICheckedMatchesService, CheckedMatchesService>();
 builder.Services.AddScoped<IParsedMatchWardInfoService, ParsedMatchWardInfoService>();
 
 // ODota Services registration including httpclient and info providers.
@@ -29,12 +36,13 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
 app.MapWardEndpoints();
+app.MapMatchupEndpoints();
 
 app.Run();

@@ -1,6 +1,6 @@
 ﻿namespace Mybad.Core.Providers.CoreHeroMatchupProvider
 {
-	internal class HeroMatchupModel
+	public class HeroMatchupModel
 	{
 		public int HeroId { get; set; }
 

@@ -1,106 +1,61 @@
 ﻿using Mybad.Core.Requests;
 using Mybad.Core.Responses;
-using System.Text.Json;
+using Mybad.Core.Services;
 
 namespace Mybad.Core.Providers.CoreHeroMatchupProvider
 {
-	public class CoreHeroMatchupProvider : IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>
-	{
-		private static async Task<HeroMatchupResponse> FindBestHeroVsEnemyWithAlly(List<int> enemyIds, List<int> allyIds)
-		{
-			string enemyMatchupsFilePath = @"C:\Users\Andrew\Desktop\enemyMatchups.json";
-			string allyMatchupsFilePath = @"C:\Users\Andrew\Desktop\allyMatchups.json";
+    public class CoreHeroMatchupProvider : IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>
+    {
+        private readonly IMatchupService _matchupService;
+        public CoreHeroMatchupProvider(IMatchupService matchupService)
+        {
+            _matchupService = matchupService;
+        }
+        public async Task<HeroMatchupResponse> GetInfoAsync(HeroMatchupRequest request)
+        {
+            if (request.AllyIds != null && request.EnemyIds != null)
+            {
+                return await FindBestHeroVsEnemyWithAlly(request.EnemyIds, request.AllyIds);
+            }
+            else if (request.EnemyIds != null)
+            {
+                return await FindBestHeroVsEnemy(request.EnemyIds);
+            }
+            else if (request.AllyIds != null)
+            {
+                return await FindBestHeroWithAlly(request.AllyIds);
+            }
+            else
+            {
+                throw new ArgumentException("No ids to find matchup");
+            }
+        }
+        private async Task<HeroMatchupResponse> FindBestHeroVsEnemyWithAlly(List<int> enemyIds, List<int> allyIds)
+        {
+            var matchup = await _matchupService.CalcutaleBestMatchupCombined(enemyIds, allyIds);
 
-			using StreamReader srEnemy = new StreamReader(enemyMatchupsFilePath);
-			var jsonMatchups = srEnemy.ReadToEnd();
-			var enemyHeroMatchups = new Dictionary<int, Dictionary<int, GamesResultsStat>>();
-			enemyHeroMatchups = JsonSerializer.Deserialize<Dictionary<int, Dictionary<int, GamesResultsStat>>>(jsonMatchups); //you need this
+            var converter = new HeroMatchupConverter();
 
-			using var srAlly = new StreamReader(allyMatchupsFilePath);
-			jsonMatchups = srAlly.ReadToEnd();
-			var allyHeroMatchups = new Dictionary<int, Dictionary<int, GamesResultsStat>>();
-			allyHeroMatchups = JsonSerializer.Deserialize<Dictionary<int, Dictionary<int, GamesResultsStat>>>(jsonMatchups); // you also need this
+            return converter.ConvertHeroMatchup(matchup);
+        }
 
-			var heroRatingVsEnemy = new Dictionary<int, double>();
-			var heroRatingWithAlly = new Dictionary<int, double>();
-			var heroRatingTotal = new Dictionary<int, double>();
+        private async Task<HeroMatchupResponse> FindBestHeroVsEnemy(List<int> enemyIds)
+        {
+            var matchup = await _matchupService.CalcutaleBestMatchupVersusEnemies(enemyIds);
 
-			//CODE BELOW HAS TO BE REWRITTEN IN MORE EFFICIENT WAY, I JUST CAN'T COME UP WITH IDEA HOW
-			//REWRITE PLZ IN AFTER TESTS HOW TO PROPERLY IMPLEMENT ALLY STATS IN TOTAL STATS
-			foreach (var heroId in enemyIds)
-			{
-				var matchups = enemyHeroMatchups[heroId];
-				foreach (var id in matchups.Keys)
-				{
-					if (enemyIds.Contains(id))
-						continue;
-					var stats = matchups[id];
-					if (!heroRatingVsEnemy.ContainsKey(id))
-					{
-						heroRatingVsEnemy.Add(id, (double)100 - (double)stats.Wins / stats.GamesPlayed);
-					}
-					else
-					{
-						heroRatingVsEnemy[id] += (double)100 - (double)stats.Wins / stats.GamesPlayed;
-					}
-				}
+            var converter = new HeroMatchupConverter();
 
-			}
-			foreach (var heroId in allyIds)
-			{
-				var matchups = allyHeroMatchups[heroId];
-				foreach (var id in matchups.Keys)
-				{
-					if (enemyIds.Contains(id))
-						continue;
-					var stats = matchups[id];
-					if (!heroRatingWithAlly.ContainsKey(id))
-					{
-						heroRatingWithAlly.Add(id, (double)stats.Wins / stats.GamesPlayed);
-					}
-					else
-					{
-						heroRatingWithAlly[id] += (double)stats.Wins / stats.GamesPlayed;
-					}
-				}
-			}
+            return converter.ConvertHeroMatchup(matchup);
+        }
 
-			heroRatingVsEnemy = heroRatingVsEnemy.OrderByDescending(r => r.Value).ToDictionary();
-			heroRatingWithAlly = heroRatingWithAlly.OrderByDescending(r => r.Value).ToDictionary();
+        private async Task<HeroMatchupResponse> FindBestHeroWithAlly(List<int> allyIds)
+        {
+            var matchup = await _matchupService.CalcutaleBestMatchupWithAllies(allyIds);
 
-			foreach (var heroId in heroRatingVsEnemy.Keys)
-			{
-				heroRatingTotal.Add(heroId, heroRatingVsEnemy[heroId] + (0.5 * heroRatingWithAlly[heroId]));
-			}
+            var converter = new HeroMatchupConverter();
 
-			heroRatingTotal = heroRatingTotal.OrderByDescending(r => r.Value).ToDictionary();
-
-			var calculatedBestHeroes = new List<HeroMatchupModel>();
-			foreach (var item in heroRatingTotal.Take(5))
-			{
-				calculatedBestHeroes.Add(new HeroMatchupModel() { HeroId = item.Key, Rating = item.Value });
-			}
-			var calculatedBestVersus = new List<HeroMatchupModel>();
-			foreach (var item in heroRatingTotal.Take(5))
-			{
-				calculatedBestVersus.Add(new HeroMatchupModel() { HeroId = item.Key, Rating = item.Value });
-			}
-			var calculatedBestWith = new List<HeroMatchupModel>();
-			foreach (var item in heroRatingTotal.Take(5))
-			{
-				calculatedBestWith.Add(new HeroMatchupModel() { HeroId = item.Key, Rating = item.Value });
-			}
-
-
-			var converter = new HeroMatchupConverter();
-
-			return converter.ConvertHeroMatchups(calculatedBestHeroes, calculatedBestVersus, calculatedBestWith);
-		}
-
-		public async Task<HeroMatchupResponse> GetInfoAsync(HeroMatchupRequest request)
-		{
-			return await FindBestHeroVsEnemyWithAlly(request.EnemyIds, request.AllyIds);
-		}
-	}
+            return converter.ConvertHeroMatchup(matchup);
+        }
+    }
 
 }
