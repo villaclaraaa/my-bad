@@ -1,4 +1,5 @@
-﻿using Mybad.Services.OpenDota.ApiResponseModels;
+﻿using Mybad.Core.Services;
+using Mybad.Services.OpenDota.ApiResponseModels;
 using System.Net.Http.Json;
 using System.Text.Json;
 using GamesResultsStat = Mybad.Core.Providers.CoreHeroMatchupProvider.GamesResultsStat;
@@ -8,148 +9,95 @@ namespace Mybad.Services.OpenDota.Cachers
 	public class ODotaHeroMatchupCacher
 	{
 		private readonly IHttpClientFactory _factory;
-
-		public ODotaHeroMatchupCacher(IHttpClientFactory factory)
+		private readonly IMatchupService _matchupService;
+		private readonly ICheckedMatchesService _checkedMatchesService;
+		public ODotaHeroMatchupCacher(IHttpClientFactory factory, IMatchupService matchupService,
+			ICheckedMatchesService checkedMatchesService)
 		{
 			_factory = factory;
+			_matchupService = matchupService;
+			_checkedMatchesService = checkedMatchesService;
 		}
-
-		public async Task CachePublicMatchesInfo(int minRank)
+		public async Task UpdateHeroMatchupsDatabase(int minRank)
 		{
 			var http = _factory.CreateClient("ODota");
-			var heroStatsEnemy = new Dictionary<int, Dictionary<int, GamesResultsStat>>(); // <heroId, <enemyHeroId, (gamesPlayed, gamesWon)>> 
-			var heroStatsAlly = new Dictionary<int, Dictionary<int, GamesResultsStat>>(); // <heroId, <enemyHeroId, (gamesPlayed, gamesWon)>> 
+            var heroStatsEnemy = new Dictionary<(int HeroId, int EnemyHeroId),GamesResultsStat>();
+            var heroStatsAlly = new Dictionary<(int HeroId, int AllyHeroId), GamesResultsStat>(); 
 
-			string parsedMatchesPath = @"C:\Users\Andrew\Desktop\parsedMatchesIds.json";
+            for (int i = 0; i < 1; i++)
+            {
+                var response = await http.GetFromJsonAsync<List<PublicMatchModel>>($"publicMatches?min_rank={minRank}");
 
-			using StreamReader srMatches = new StreamReader(parsedMatchesPath);
-			var jsonString = srMatches.ReadToEnd();
-			var matchesId = JsonSerializer.Deserialize<HashSet<long>>(jsonString); //store checked matches id, so that you accidentaly dont check the same match more than once
-			srMatches.Close();
+                if (response == null)
+                {
+                    throw new InvalidOperationException();
+                }
+				var uncheckedMatches = await _checkedMatchesService.FilterAlreadyCheckedMatches(response.Select(r => r.MatchId).ToList());
+				var uncheckedSet = new HashSet<long>(uncheckedMatches);
 
-			for (int i = 0; i < 1; i++)
-			{
-				var response = await http.GetFromJsonAsync<List<PublicMatchModel>>($"publicMatches?min_rank={minRank}");
+                Console.WriteLine("got response");
+                foreach (var game in response.Where(g => uncheckedSet.Contains(g.MatchId)))
+                {
+                    game.SortTeams();
 
-				if (response == null)
-				{
-					throw new InvalidOperationException();
-				}
+                    var winners = game.RadiantWin ? game.RadiantTeam : game.DireTeam;
+                    var losers = game.RadiantWin ? game.DireTeam : game.RadiantTeam;
 
-				Console.WriteLine("got response");
-				foreach (var game in response)
-				{
-					if (matchesId.Contains(game.MatchId))
-						continue;
-					matchesId.Add(game.MatchId);
-					game.SortTeams();
+                    //go through all winners
+                    foreach (var heroW in winners)
+                    {
+                        //ally
+                        foreach (var allyW in winners)
+                        {
+                            if (heroW >= allyW) continue;
+                            UpdateStats(heroStatsAlly, heroW, allyW, true);
+                            UpdateStats(heroStatsAlly, allyW, heroW, true);
+                        }
 
-					var winners = game.RadiantWin ? game.RadiantTeam : game.DireTeam;
-					var losers = game.RadiantWin ? game.DireTeam : game.RadiantTeam;
+                        //winner vs loser
+                        foreach (var heroL in losers)
+                        {
+                            UpdateStats(heroStatsEnemy, heroW, heroL, true);
+                            UpdateStats(heroStatsEnemy, heroL, heroW, false);
+                        }
+                    }
 
-					//go through all winners
-					foreach (var heroW in winners)
-					{
-						//ally
-						foreach (var allyW in winners)
-						{
-							if (heroW >= allyW) continue;
-							UpdateStats(heroStatsAlly, heroW, allyW, true);
-							UpdateStats(heroStatsAlly, allyW, heroW, true);
-						}
+                    //losers with losers
+                    //don't need to make a loser vs winner because made it above
+                    foreach (var heroL in losers)
+                    {
+                        foreach (var allyL in losers)
+                        {
+                            if (heroL >= allyL) continue;
+                            UpdateStats(heroStatsAlly, heroL, allyL, false);
+                            UpdateStats(heroStatsAlly, allyL, heroL, false);
+                        }
+                    }
+                }
+                Console.WriteLine($"Finished parsing game {i}");
 
-						//winner vs loser
-						foreach (var heroL in losers)
-						{
-							UpdateStats(heroStatsEnemy, heroW, heroL, true);
-							UpdateStats(heroStatsEnemy, heroL, heroW, false);
-						}
-					}
+                await Task.Delay(1000);
 
-					//losers with losers
-					//don't need to make a loser vs winner because made it above
-					foreach (var heroL in losers)
-					{
-						foreach (var allyL in losers)
-						{
-							if (heroL >= allyL) continue;
-							UpdateStats(heroStatsAlly, heroL, allyL, false);
-							UpdateStats(heroStatsAlly, allyL, heroL, false);
-						}
-					}
-				}
-				Console.WriteLine($"Finished parsing game {i}");
+				await _checkedMatchesService.AddCheckedMatches(uncheckedMatches);
+            }
+			
+			await _matchupService.UpdateMatchups(heroStatsEnemy, true);
+            await _matchupService.UpdateMatchups(heroStatsAlly, false);
 
-				await Task.Delay(1000);
-			}
-
-			string enemyMatchupPath = @"C:\Users\Andrew\Desktop\enemyMatchups.json";
-			string allyMatchupPath = @"C:\Users\Andrew\Desktop\allyMatchups.json";
-
-			using StreamReader srEnemy = new StreamReader(enemyMatchupPath);
-			jsonString = srEnemy.ReadToEnd();
-
-			var storedStatsEnemy = JsonSerializer.Deserialize<Dictionary<int, Dictionary<int, GamesResultsStat>>>(jsonString);
-			srEnemy.Close();
-
-			using StreamReader srAlly = new StreamReader(allyMatchupPath);
-			jsonString = srAlly.ReadToEnd();
-			var storedStatsAlly = JsonSerializer.Deserialize<Dictionary<int, Dictionary<int, GamesResultsStat>>>(jsonString);
-			srAlly.Close();
-			//update the stats with new info
-			foreach (var heroId in heroStatsEnemy.Keys)
-			{
-				foreach (var enemyId in heroStatsEnemy[heroId].Keys)
-				{
-					storedStatsEnemy[heroId][enemyId].GamesPlayed += heroStatsEnemy[heroId][enemyId].GamesPlayed;
-					storedStatsEnemy[heroId][enemyId].Wins += heroStatsEnemy[heroId][enemyId].Wins;
-				}
-			}
-
-			foreach (var heroId in heroStatsAlly.Keys)
-			{
-				foreach (var allyId in heroStatsAlly[heroId].Keys)
-				{
-					storedStatsAlly[heroId][allyId].GamesPlayed += heroStatsAlly[heroId][allyId].GamesPlayed;
-					storedStatsAlly[heroId][allyId].Wins += heroStatsAlly[heroId][allyId].Wins;
-				}
-			}
-
-			Console.WriteLine("Serializing");
-			var options = new JsonSerializerOptions { WriteIndented = true };
-			string finalJson = JsonSerializer.Serialize(storedStatsEnemy, options);
-			await File.WriteAllTextAsync(enemyMatchupPath, finalJson);
-			finalJson = JsonSerializer.Serialize(storedStatsAlly, options);
-			await File.WriteAllTextAsync(allyMatchupPath, finalJson);
-
-			finalJson = JsonSerializer.Serialize(matchesId, options);
-			await File.WriteAllTextAsync(parsedMatchesPath, finalJson);
-
-			Console.WriteLine("Finished serializing");
-
-		}
-		private static void UpdateStats(Dictionary<int, Dictionary<int, GamesResultsStat>> dict, int heroA, int heroB, bool didHeroAWin)
+        }
+		private static void UpdateStats(Dictionary<(int,int), GamesResultsStat> dict, int heroA, int heroB, bool didHeroAWin)
 		{
-			if (!dict.ContainsKey(heroA))
+			if(!dict.ContainsKey((heroA,heroB)))
 			{
-				dict[heroA] = new Dictionary<int, GamesResultsStat>();
+				dict.Add((heroA, heroB), new GamesResultsStat(0,0));
 			}
 
-			if (!dict[heroA].ContainsKey(heroB))
+			if(didHeroAWin)
 			{
-				dict[heroA][heroB] = new GamesResultsStat(0, 0);
-			}
-
-			var gameResultsStats = dict[heroA][heroB];
-
-			gameResultsStats.GamesPlayed++;
-			if (didHeroAWin)
-			{
-				gameResultsStats.Wins++;
-			}
-
-			dict[heroA][heroB] = gameResultsStats;
-		}
+				dict[(heroA, heroB)].Wins++;
+            }
+            dict[(heroA, heroB)].GamesPlayed++;
+        }
 	}
 
 }

@@ -4,38 +4,21 @@ using Mybad.Core.Responses.Entries;
 
 namespace Mybad.Core.Providers.CoreHeroMatchupProvider
 {
-	internal class HeroMatchupConverter
-	{
-		public HeroMatchupResponse ConvertHeroMatchups(List<HeroMatchupModel> bestCalculated,
-			List<HeroMatchupModel> bestVersus, List<HeroMatchupModel> bestWith)
-		{
-			var response = new HeroMatchupResponse();
-			response.BestVersus = new List<HeroMatchup>();
-			response.BestWith = new List<HeroMatchup>();
-			response.BestCalculated = new List<HeroMatchup>();
+    internal class HeroMatchupConverter
+    {
+        public HeroMatchupResponse ConvertHeroMatchup(List<HeroMatchupModel> matchup)
+        {
+            var response = new HeroMatchupResponse();
+            response.Matchup = new List<HeroMatchup>();
 
+            foreach (var item in matchup)
+            {
+                string heroName = ((HeroesEnum)item.HeroId).ToString();
 
-			foreach (var item in bestCalculated)
-			{
-				string heroName = ((HeroesEnum)item.HeroId).ToString();
+                response.Matchup.Add(new HeroMatchup() { HeroId = item.HeroId, HeroName = heroName, Rating = item.Rating });
+            }
 
-				response.BestCalculated.Add(new HeroMatchup() { HeroId = item.HeroId, HeroName = heroName, Rating = item.Rating });
-			}
-			foreach (var item in bestVersus)
-			{
-				string heroName = ((HeroesEnum)item.HeroId).ToString();
-
-				response.BestVersus.Add(new HeroMatchup() { HeroId = item.HeroId, HeroName = heroName, Rating = item.Rating });
-			}
-			foreach (var item in bestWith)
-			{
-				string heroName = ((HeroesEnum)item.HeroId).ToString();
-
-				response.BestWith.Add(new HeroMatchup() { HeroId = item.HeroId, HeroName = heroName, Rating = item.Rating });
-			}
-
-
-			return response;
-		}
-	}
+            return response;
+        }
+    }
 }
