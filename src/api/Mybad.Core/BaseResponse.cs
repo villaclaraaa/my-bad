@@ -10,4 +10,6 @@
 public abstract class BaseResponse
 {
 	public int Id { get; set; }
+
+	public List<string> Errors { get; set; } = [];
 }

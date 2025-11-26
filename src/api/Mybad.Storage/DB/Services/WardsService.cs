@@ -33,6 +33,8 @@ public class WardsService : IWardService
 		if (existingWard != null)
 		{
 			existingWard.Amount++;
+			existingWard.TimeLivedSeconds = existingWard.TimeLivedSeconds + ward.TimeLivedSeconds;
+			existingWard.WasDestroyed = existingWard.WasDestroyed || ward.WasDestroyed;
 			await _dbContext.SaveChangesAsync();
 			return;
 		}
@@ -41,6 +43,13 @@ public class WardsService : IWardService
 		var entity = ward.MapToEntity();
 
 		_dbContext.Wards.Add(entity);
+		await _dbContext.SaveChangesAsync();
+	}
+
+	public async Task AddRangeAsync(IEnumerable<WardModel> wards)
+	{
+		var entities = wards.Select(x => x.MapToEntity());
+		_dbContext.Wards.AddRange(entities);
 		await _dbContext.SaveChangesAsync();
 	}
 

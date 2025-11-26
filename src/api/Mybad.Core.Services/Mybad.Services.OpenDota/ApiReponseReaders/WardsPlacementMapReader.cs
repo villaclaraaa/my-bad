@@ -1,4 +1,5 @@
-﻿using Mybad.Core.Responses.Entries;
+﻿using Mybad.Core.DomainModels;
+using Mybad.Core.Responses.Entries;
 using Mybad.Services.OpenDota.ApiResponseModels;
 
 namespace Mybad.Services.OpenDota.ApiResponseReaders;
@@ -163,10 +164,63 @@ internal class WardsPlacementMapReader
 			{
 				X = (int)Math.Round(ward.X, MidpointRounding.AwayFromZero),
 				Y = (int)Math.Round(ward.Y, MidpointRounding.AwayFromZero),
-				TimeLived = timeLived,
+				TimeLived = timeLived > defaultTime ? defaultTime : timeLived,
 				WasDestroyed = timeLived != defaultTime,
 				Amount = 1 // TODO - amount of ward when creating WardsLogMatchResponse.
 						   // Dont know if i should increase count for all wards in same place.
+			};
+			response.Add(wardL);
+		}
+
+		return response;
+	}
+
+	public List<WardModel> ConvertWardsToWardModel(MatchWardLogInfo apiReponse, long accountId, long matchId, bool isObs = true)
+	{
+		var playerInfo = apiReponse.Players.FirstOrDefault(x => x.AccountId == accountId);
+		if (playerInfo == null)
+		{
+			throw new InvalidOperationException();
+		}
+
+		var wardLog = playerInfo.ObsLog;
+		var wardLeftLog = playerInfo.ObsLeftLog;
+
+		var response = new List<WardModel>();
+		var defaultTime = isObs ? 360 : 420;
+
+		foreach (var ward in wardLog)
+		{
+			var timeLived = defaultTime;    // Default duration - 6mins.
+			if (wardLeftLog.FirstOrDefault(x => x.EHandle == ward.EHandle) is WardLogEntry leftLogEntry)
+			{
+				/* 
+				 * Calculating time depending on whether ward was placed and destroyed before/after horn.
+				 */
+				// put = -50, destroy = -20 => lived = 30s
+				if (leftLogEntry.Time < 0 && ward.Time < 0)
+				{
+					timeLived = Math.Abs(ward.Time) - Math.Abs(leftLogEntry.Time);
+				}
+
+				// put = -20, destroy = 20 => lived = 40s
+				if (leftLogEntry.Time < 0 && ward.Time > 0)
+				{
+					timeLived = leftLogEntry.Time + Math.Abs(ward.Time);
+				}
+
+				// put = 20, destroy = 40 => lived = 20s
+				timeLived = leftLogEntry.Time - ward.Time;
+			}
+			var wardL = new WardModel
+			{
+				PosX = (int)Math.Round(ward.X, MidpointRounding.AwayFromZero),
+				PosY = (int)Math.Round(ward.Y, MidpointRounding.AwayFromZero),
+				TimeLivedSeconds = timeLived > defaultTime ? defaultTime : timeLived,
+				WasDestroyed = timeLived != defaultTime,
+				Amount = 1,
+				MatchId = matchId,
+				AccountId = accountId
 			};
 			response.Add(wardL);
 		}
