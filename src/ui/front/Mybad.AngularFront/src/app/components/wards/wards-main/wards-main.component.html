@@ -1,0 +1,9 @@
+<app-tabsmenu
+  [tabs]="[
+    { key: 'map', label: 'Map' },
+    { key: 'efficiency', label: 'Efficiency' }, ]" [(activeTab)]="activeTab"></app-tabsmenu>
+
+<div *ngIf="activeTab === 'map'">
+    <app-wardmap></app-wardmap>
+</div>
+<div *ngIf="activeTab === 'efficiency'">Wards content…</div>
