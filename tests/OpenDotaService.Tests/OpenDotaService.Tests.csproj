@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\api\Mybad.Core.Services\Mybad.Services.OpenDota\Mybad.Services.OpenDota.csproj" />
-    <ProjectReference Include="..\..\src\api\Mybad.Core\Mybad.Core.csproj" />
   </ItemGroup>
   
   <ItemGroup>
@@ -32,6 +31,10 @@
     <None Update="Data\wardmap.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ApiResponseReadersTests\" />
   </ItemGroup>
 
 </Project>

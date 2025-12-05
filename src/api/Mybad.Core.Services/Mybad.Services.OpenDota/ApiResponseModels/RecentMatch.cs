@@ -2,11 +2,6 @@
 
 namespace Mybad.Services.OpenDota.ApiResponseModels.Player;
 
-internal class RecentMatches
-{
-	public List<RecentMatch> Matches { get; set; } = new List<RecentMatch>();
-}
-
 internal class RecentMatch
 {
 	/// <summary>
