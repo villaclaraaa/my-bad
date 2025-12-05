@@ -2,7 +2,7 @@
 using Mybad.Services.OpenDota.ApiResponseModels.Player;
 using System.Net.Http.Json;
 
-namespace OpenDotaService.Tests.HttpRequestsTests;
+namespace OpenDotaService.Tests;
 
 /// <summary>
 /// This is the tests for ensuring that when sending some request to ODota API 

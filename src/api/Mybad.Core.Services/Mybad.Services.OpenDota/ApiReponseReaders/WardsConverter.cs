@@ -4,7 +4,7 @@ using Mybad.Services.OpenDota.ApiResponseModels;
 
 namespace Mybad.Services.OpenDota.ApiResponseReaders;
 
-internal class WardsPlacementMapReader
+internal class WardsConverter
 {
 	/// <summary>
 	/// Converts the incoming <see cref="WardPlacementMap"/> Api response to a tuple of List of Observers and Sentries
@@ -68,64 +68,6 @@ internal class WardsPlacementMapReader
 	}
 
 	/// <summary>
-	/// Converts the list of <see cref="MatchWardLogInfo"/> API response to a <see cref="WardLog"/> models.
-	/// </summary>
-	/// <param name="mathesLogs">List of ODota api responses.</param>
-	/// <param name="accountId">Account for uset to check wards.</param>
-	/// <returns>Tuple of lists of <see cref="WardLog"/> objects.</returns>
-	/// <remarks>It is basically the same as <see cref="ConvertWardsLogMatch(MatchWardLogInfo, long)"/> but for list.</remarks>
-	/// <exception cref="InvalidOperationException"></exception>
-	public (List<WardLog> obses, List<WardLog> sens) ConvertWardsLogManyMathes(List<MatchWardLogInfo> mathesLogs, long accountId)
-	{
-		var obses = new List<WardLog>();
-		var sens = new List<WardLog>();
-
-		Dictionary<(int X, int Y), WardLog> dicObs = [];
-		Dictionary<(int X, int Y), WardLog> dicSen = [];
-
-		foreach (var log in mathesLogs)
-		{
-			var playerInfo = log.Players.FirstOrDefault(x => x.AccountId == accountId);
-			if (playerInfo == null)
-			{
-				throw new InvalidOperationException();
-			}
-
-			obses.AddRange(ConvertWards(playerInfo.ObsLog, playerInfo.ObsLeftLog, true));
-			sens.AddRange(ConvertWards(playerInfo.SenLog, playerInfo.SenLeftLog, false));
-		}
-
-		foreach (var obs in obses)
-		{
-			(int x, int y) key = (obs.X, obs.Y);
-			if (!dicObs.TryGetValue(key, out WardLog? value))
-			{
-				dicObs.Add(key, obs);
-			}
-			else
-			{
-				value.Amount++;
-				value.TimeLived = (value.TimeLived + obs.TimeLived) / value.Amount;
-			}
-		}
-
-		foreach (var sen in sens)
-		{
-			(int x, int y) key = (sen.X, sen.Y);
-			if (!dicSen.TryGetValue(key, out WardLog? value))
-			{
-				dicSen.Add(key, sen);
-			}
-			else
-			{
-				value.Amount++;
-			}
-		}
-
-		return ([.. dicObs.Select(x => x.Value)], [.. dicSen.Select(x => x.Value)]);
-	}
-
-	/// <summary>
 	/// Internal function to convert only one type of wards into list of <see cref="WardLog"/>.
 	/// </summary>
 	/// <param name="wardLog">List of wards placed.</param>
@@ -175,6 +117,16 @@ internal class WardsPlacementMapReader
 		return response;
 	}
 
+	/// <summary>
+	/// Converts <see cref="MatchWardLogInfo"/> object containing wards object as obs_log and obs_left_log
+	/// to the lit of <see cref="WardModel"/> objects. 
+	/// </summary>
+	/// <param name="apiReponse">Api response object.</param>
+	/// <param name="accountId">Account Id for which user to convert.</param>
+	/// <param name="matchId">MatchId. Used to create <see cref="WardModel"/> object.</param>
+	/// <param name="isObs">Sets whether this method should convert Observers or Sentries. Defaults to <c>true</c>.</param>
+	/// <returns><see cref="List{T}"/> of <see cref="WardModel"/> objects.</returns>
+	/// <exception cref="InvalidOperationException"></exception>
 	public List<WardModel> ConvertWardsToWardModel(MatchWardLogInfo apiReponse, long accountId, long matchId, bool isObs = true)
 	{
 		var playerInfo = apiReponse.Players.FirstOrDefault(x => x.AccountId == accountId);

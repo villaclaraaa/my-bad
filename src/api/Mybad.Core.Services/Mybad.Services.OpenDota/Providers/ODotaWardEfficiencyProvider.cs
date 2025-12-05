@@ -20,7 +20,7 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 	private readonly ILogger<ODotaWardEfficiencyProvider> _logger;
 	private readonly IParsedMatchWardInfoService _matchService;
 	private readonly IWardService _wardService;
-	private readonly static WardsPlacementMapReader _reader = new();
+	private readonly static WardsConverter _reader = new();
 
 	public ODotaWardEfficiencyProvider(
 		IHttpClientFactory factory,

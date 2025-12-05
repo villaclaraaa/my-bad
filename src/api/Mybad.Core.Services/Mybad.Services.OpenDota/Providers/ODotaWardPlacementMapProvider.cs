@@ -21,32 +21,39 @@ public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, Wards
 
 	public async Task<WardsMapPlacementResponse> GetInfoAsync(WardMapRequest request)
 	{
+		ArgumentNullException.ThrowIfNull(request.AccountId);
+
+		var response = new WardsMapPlacementResponse(request.AccountId);
 		var http = _factory.CreateClient("ODota");
 
-		try
+		// Pinging ODota API to check if it's reachable
+		var ping = await http.GetAsync("health");
+		if (!ping.IsSuccessStatusCode)
 		{
-			var apiResponse = await http.GetFromJsonAsync<WardPlacementMap>($"players/{request.AccountId}/wardmap?having=100");
-
-			if (apiResponse == null)
-			{
-				throw new NullReferenceException($"OpenDota API returned null for ward placement map for accountid {request.AccountId}.");
-			}
-
-			var reader = new WardsPlacementMapReader();
-			var (obses, sens) = reader.ConvertToWardList(apiResponse);
-			var response = new WardsMapPlacementResponse
-			{
-				Id = 1,
-				ObserverWards = obses,
-				SentryWards = sens,
-				AccountId = request.AccountId
-			};
+			_logger.LogWarning("OpenDota API is not reachable. Status code: {StatusCode}", ping.StatusCode);
+			response.Errors.Add($"OpenDota API is not reachable. Status code: {ping.StatusCode}");
 			return response;
 		}
-		catch (Exception ex)
+
+		// Get recent matches
+		var apiResponse = await http.GetAsync($"players/{request.AccountId}/wardmap?having=100");
+		if (!apiResponse.IsSuccessStatusCode)
 		{
-			_logger.LogWarning("Exception when getting ward placement map for account {AccountId}. {ex}", request.AccountId, ex);
-			throw;
+			_logger.LogWarning("Failed to get recent matches for account {AccountId}. Status code: {StatusCode}", request.AccountId, apiResponse.StatusCode);
+			response.Errors.Add($"Failed to get recent matches for account {request.AccountId}. Status code: {apiResponse.StatusCode}");
+			return response;
 		}
+
+		var wardsMap = await apiResponse.Content.ReadFromJsonAsync<WardPlacementMap>();
+		if (wardsMap == null)
+		{
+			_logger.LogWarning("Failed to read api response.");
+			response.Errors.Add($"Failed to read from OpenDota.");
+			return response;
+		}
+
+		var reader = new WardsConverter();
+		(response.ObserverWards, response.SentryWards) = reader.ConvertToWardList(wardsMap);
+		return response;
 	}
 }

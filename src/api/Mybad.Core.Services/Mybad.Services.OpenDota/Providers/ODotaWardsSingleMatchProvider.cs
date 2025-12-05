@@ -29,7 +29,7 @@ public class ODotaWardsSingleMatchProvider : IInfoProvider<WardLogSingleMatchReq
 				throw new InvalidOperationException();
 			}
 
-			var reader = new WardsPlacementMapReader();
+			var reader = new WardsConverter();
 
 			var (obses, sens) = reader.ConvertWardsLogMatch(apiResponse, accountId);
 			var response = new WardsLogMatchResponse()
