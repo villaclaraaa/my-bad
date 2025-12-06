@@ -103,12 +103,16 @@ public class ApiResponseConverterTests
 		// Assert
 		Assert.NotNull(result);
 		Assert.Equal(obsesCount, result.Count);
-		Assert.Contains(obsesList[0], result);
-		Assert.Contains(obsesList[1], result);
-		Assert.Contains(obsesList[2], result);
-		Assert.Contains(obsesList[3], result);
-		Assert.Contains(obsesList[4], result);
-		Assert.Contains(obsesList[5], result);
-		Assert.Contains(obsesList[6], result);
+		foreach (var expected in obsesList)
+		{
+			Assert.Contains(result, x =>
+				x.PosX == expected.PosX &&
+				x.PosY == expected.PosY &&
+				x.AccountId == expected.AccountId &&
+				x.MatchId == expected.MatchId &&
+				x.Amount == expected.Amount &&
+				x.TimeLivedSeconds == expected.TimeLivedSeconds &&
+				x.WasDestroyed == expected.WasDestroyed);
+		}
 	}
 }
