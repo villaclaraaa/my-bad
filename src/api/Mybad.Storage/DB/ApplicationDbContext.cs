@@ -11,13 +11,12 @@ public class ApplicationDbContext : DbContext
 	}
 
 	public DbSet<WardEntity> Wards { get; set; } = default!;
-
 	public DbSet<ParsedMatchWardInfo> ParsedMatchWardInfos { get; set; } = default!;
 	public DbSet<HeroMatchupEnemyEntity> HeroMatchupEnemies { get; set; } = default!;
 	public DbSet<HeroMatchupAllyEntity> HeroMatchupAllies { get; set; } = default!;
-
 	public DbSet<CheckedMatchMatchupEntity> CheckedMatches { get; set; } = default!;
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+
+	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		modelBuilder.Entity<WardEntity>(b =>
 		{
@@ -35,14 +34,14 @@ public class ApplicationDbContext : DbContext
 			b.HasIndex(p => new { p.MatchId, p.AccountId });
 		});
 
-        modelBuilder.Entity<HeroMatchupEntity>(hm =>
-        {
-            hm.HasKey(hm => new { hm.HeroId, hm.OtherHeroId });
-        });
+		modelBuilder.Entity<HeroMatchupEntity>(hm =>
+		{
+			hm.HasKey(hm => new { hm.HeroId, hm.OtherHeroId });
+		});
 
 		modelBuilder.Entity<CheckedMatchMatchupEntity>(cm =>
 		{
 			cm.HasKey(hm => new { hm.MatchId });
 		});
-    }
+	}
 }
