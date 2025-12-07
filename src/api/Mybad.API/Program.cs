@@ -6,6 +6,7 @@ using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 using Mybad.Core.Services;
 using Mybad.Services.OpenDota;
+using Mybad.Services.OpenDota.Cachers;
 using Mybad.Storage.DB;
 using Mybad.Storage.DB.Services;
 
@@ -19,7 +20,7 @@ builder.Services.AddSwaggerGen();
 // Db registration
 var con = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(con));
+	options.UseNpgsql(con));
 
 // Core services + Db registration
 builder.Services.AddScoped<IWardService, WardsService>();
@@ -36,13 +37,19 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
 app.MapWardEndpoints();
 app.MapMatchupEndpoints();
+
+app.MapGet("/cache", async (ODotaHeroMatchupCacher cacher) =>
+{
+	await cacher.UpdateHeroMatchupsDatabase(75);
+	return "success";
+});
 
 app.Run();

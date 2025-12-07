@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Mybad.Storage.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251115233929_AddParsedMatchWardInfo")]
-    partial class AddParsedMatchWardInfo
+    [Migration("20251206211658_AllInit")]
+    partial class AllInit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace Mybad.Storage.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Mybad.Storage.DB.Entities.ParsedMatchWardInfo", b =>
+            modelBuilder.Entity("Mybad.Storage.DB.Entities.CheckedMatchMatchupEntity", b =>
                 {
                     b.Property<long>("MatchId")
                         .ValueGeneratedOnAdd()
@@ -33,12 +33,48 @@ namespace Mybad.Storage.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MatchId"));
 
+                    b.HasKey("MatchId");
+
+                    b.ToTable("matchup_checked_matches", (string)null);
+                });
+
+            modelBuilder.Entity("Mybad.Storage.DB.Entities.HeroMatchupEntity", b =>
+                {
+                    b.Property<int>("HeroId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OtherHeroId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("GamesPlayed")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("integer");
+
+                    b.HasKey("HeroId", "OtherHeroId");
+
+                    b.ToTable((string)null);
+
+                    b.UseTpcMappingStrategy();
+                });
+
+            modelBuilder.Entity("Mybad.Storage.DB.Entities.ParsedMatchWardInfo", b =>
+                {
+                    b.Property<long>("MatchId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("PlayedAtDateUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("MatchId");
+                    b.HasKey("MatchId", "AccountId");
 
-                    b.ToTable("ParsedMatchWardInfos");
+                    b.HasIndex("MatchId", "AccountId");
+
+                    b.ToTable("wards_parsed_matches", (string)null);
                 });
 
             modelBuilder.Entity("Mybad.Storage.DB.Entities.WardEntity", b =>
@@ -75,7 +111,21 @@ namespace Mybad.Storage.Migrations
 
                     b.HasIndex("MatchId", "AccountId", "PosX", "PosY");
 
-                    b.ToTable("Wards");
+                    b.ToTable("wards", (string)null);
+                });
+
+            modelBuilder.Entity("Mybad.Storage.DB.Entities.HeroMatchupAllyEntity", b =>
+                {
+                    b.HasBaseType("Mybad.Storage.DB.Entities.HeroMatchupEntity");
+
+                    b.ToTable("matchup_allies", (string)null);
+                });
+
+            modelBuilder.Entity("Mybad.Storage.DB.Entities.HeroMatchupEnemyEntity", b =>
+                {
+                    b.HasBaseType("Mybad.Storage.DB.Entities.HeroMatchupEntity");
+
+                    b.ToTable("matchup_enemies", (string)null);
                 });
 #pragma warning restore 612, 618
         }

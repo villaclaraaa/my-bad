@@ -25,6 +25,7 @@ public class ApplicationDbContext : DbContext
 			b.HasIndex(w => w.MatchId);
 			b.HasIndex(w => w.AccountId);
 			b.HasIndex(w => new { w.MatchId, w.AccountId, w.PosX, w.PosY });
+			b.ToTable("wards");
 		});
 
 		modelBuilder.Entity<ParsedMatchWardInfo>(b =>
@@ -32,15 +33,23 @@ public class ApplicationDbContext : DbContext
 			b.HasKey(p => new { p.MatchId, p.AccountId });
 
 			b.HasIndex(p => new { p.MatchId, p.AccountId });
+			b.ToTable("wards_parsed_matches");
 		});
 
 		modelBuilder.Entity<HeroMatchupEntity>(hm =>
 		{
 			hm.HasKey(hm => new { hm.HeroId, hm.OtherHeroId });
+			hm.UseTpcMappingStrategy(); // this tells to create two separate tables for matchups
+			hm.ToTable((string?)null);
 		});
+
+		modelBuilder.Entity<HeroMatchupAllyEntity>().ToTable("matchup_allies");
+
+		modelBuilder.Entity<HeroMatchupEnemyEntity>().ToTable("matchup_enemies");
 
 		modelBuilder.Entity<CheckedMatchMatchupEntity>(cm =>
 		{
+			cm.ToTable("matchup_checked_matches");
 			cm.HasKey(hm => new { hm.MatchId });
 		});
 	}
