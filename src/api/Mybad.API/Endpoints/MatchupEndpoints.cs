@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Mybad.API.Services;
 using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
@@ -20,14 +21,16 @@ namespace Mybad.API.Endpoints
 			return group;
 		}
 
-		private static async Task StopCacher(HttpContext context)
+		private static IResult StopCacher(HeroMatchupCacherStatus cacherStatus)
 		{
-			throw new NotImplementedException();
+			cacherStatus.IsEnabled = false;
+			return TypedResults.Ok("Cacher stopped.");
 		}
 
-		private static async Task StartCacher(HttpContext context)
+		private static IResult StartCacher(HeroMatchupCacherStatus cacherStatus)
 		{
-			throw new NotImplementedException();
+			cacherStatus.IsEnabled = true;
+			return TypedResults.Ok("Cacher resumed.");
 		}
 
 		private static async Task<IResult> FindBestHeroes([FromBody] HeroMatchupsRequestModel model,

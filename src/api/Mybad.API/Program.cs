@@ -33,6 +33,7 @@ builder.Services.AddScoped<IParsedMatchWardInfoService, ParsedMatchWardInfoServi
 // ODota Services registration including httpclient and info providers.
 builder.Services.AddODotaServices();
 
+builder.Services.AddSingleton<HeroMatchupCacherStatus>();
 builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
 
 var app = builder.Build();
