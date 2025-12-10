@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Mybad.API.Endpoints;
+using Mybad.API.Services;
 using Mybad.Core;
 using Mybad.Core.Providers.CoreHeroMatchupProvider;
 using Mybad.Core.Requests;
@@ -31,6 +32,8 @@ builder.Services.AddScoped<IParsedMatchWardInfoService, ParsedMatchWardInfoServi
 
 // ODota Services registration including httpclient and info providers.
 builder.Services.AddODotaServices();
+
+builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
 
 var app = builder.Build();
 
