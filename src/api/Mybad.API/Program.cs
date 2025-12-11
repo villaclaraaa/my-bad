@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Mybad.API.Endpoints;
 using Mybad.API.Services;
+using Mybad.API.TgBotFeature;
 using Mybad.Core;
 using Mybad.Core.Providers.CoreHeroMatchupProvider;
 using Mybad.Core.Requests;
@@ -10,6 +11,7 @@ using Mybad.Services.OpenDota;
 using Mybad.Services.OpenDota.Cachers;
 using Mybad.Storage.DB;
 using Mybad.Storage.DB.Services;
+using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +38,17 @@ builder.Services.AddODotaServices();
 builder.Services.AddSingleton<HeroMatchupCacherStatus>();
 builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
 
+// Setup API only DbContext (such as TgBot etc maybe)
+builder.Services.AddDbContext<ApiDbContext>(options =>
+	options.UseNpgsql(con));
+
+// Setup TgBot News
+var bot_token = builder.Configuration["BotSettings:Tg_BotToken"]!;
+var webhookURL = builder.Configuration["BotSettings:Tg_BotWebhookUrl"]!;
+builder.Services.AddHttpClient("tgwebhook").RemoveAllLoggers().AddTypedClient(httpClient => new TelegramBotClient(bot_token!, httpClient));
+builder.Services.AddScoped<INotifier, TgBotNotifier>();
+builder.Services.AddScoped<TgBotSubscriberService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -55,5 +68,7 @@ app.MapGet("/cache", async (ODotaHeroMatchupCacher cacher) =>
 	await cacher.UpdateHeroMatchupsDatabase(75);
 	return "success";
 });
+
+app.MapTgBotEndpoints(webhookURL);
 
 app.Run();
