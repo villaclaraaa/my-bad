@@ -8,7 +8,7 @@ public class HeroMatchupCacherHostedService : BackgroundService
 	private readonly IServiceScopeFactory _scopeFactory;
 	private readonly ILogger<HeroMatchupCacherHostedService> _logger;
 	private readonly HeroMatchupCacherStatus _status;
-	private const int _timeoutS = 20;
+	private const int _timeoutS = 3600;
 
 	public HeroMatchupCacherHostedService(IServiceScopeFactory scopeFactory, ILogger<HeroMatchupCacherHostedService> logger, HeroMatchupCacherStatus status)
 	{
