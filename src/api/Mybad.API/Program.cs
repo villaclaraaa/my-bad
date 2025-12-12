@@ -24,9 +24,10 @@ var con = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseNpgsql(con));
 
-// Core services + Db registration
-builder.Services.AddScoped<IWardService, WardsService>();
+// Core services + Db implementations
 builder.Services.AddScoped<IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>, CoreHeroMatchupProvider>();
+
+builder.Services.AddScoped<IWardService, WardsService>();
 builder.Services.AddScoped<IMatchupService, MatchupService>();
 builder.Services.AddScoped<ICheckedMatchesService, CheckedMatchesService>();
 builder.Services.AddScoped<IParsedMatchWardInfoService, ParsedMatchWardInfoService>();
@@ -61,6 +62,9 @@ app.UseHttpsRedirection();
 
 app.MapWardEndpoints();
 app.MapMatchupEndpoints();
+
+app.MapGet("/test", () => "xarosh")
+	.AllowAnonymous();
 
 app.MapGet("/cache", async (ODotaHeroMatchupCacher cacher) =>
 {

@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mybad.Services.OpenDota", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Tests", "tests\Core.Tests\Core.Tests.csproj", "{D7FDDEFC-2861-4E5B-B445-BF8D1BE1F851}"
 EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "Mybad.AngularFront", "src\ui\front\Mybad.AngularFront\Mybad.AngularFront.esproj", "{96C4974B-5B82-C124-CE70-CF51D2997FC7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,12 @@ Global
 		{D7FDDEFC-2861-4E5B-B445-BF8D1BE1F851}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7FDDEFC-2861-4E5B-B445-BF8D1BE1F851}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7FDDEFC-2861-4E5B-B445-BF8D1BE1F851}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96C4974B-5B82-C124-CE70-CF51D2997FC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96C4974B-5B82-C124-CE70-CF51D2997FC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96C4974B-5B82-C124-CE70-CF51D2997FC7}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{96C4974B-5B82-C124-CE70-CF51D2997FC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96C4974B-5B82-C124-CE70-CF51D2997FC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96C4974B-5B82-C124-CE70-CF51D2997FC7}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -86,6 +94,7 @@ Global
 		{9BA29CB4-0740-47D0-82DF-9D10A31A33E2} = {7DCF2E00-DC98-4D20-A5C8-47943168A33A}
 		{229C1C2B-71F1-63DA-85A2-27799EF1EB35} = {8C209703-8636-47E9-B977-6169444D453A}
 		{D7FDDEFC-2861-4E5B-B445-BF8D1BE1F851} = {151BB809-F5D9-417F-999F-82F1AC961BE9}
+		{96C4974B-5B82-C124-CE70-CF51D2997FC7} = {7DCF2E00-DC98-4D20-A5C8-47943168A33A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {54D1A7DD-C8D4-42E3-8C9F-A6CCCF84B8D6}
