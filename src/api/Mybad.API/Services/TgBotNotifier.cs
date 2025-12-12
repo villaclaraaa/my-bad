@@ -2,7 +2,7 @@
 using Mybad.Storage.DB.Services;
 using Telegram.Bot;
 
-namespace Mybad.API.TgBotFeature;
+namespace Mybad.API.Services;
 
 public class TgBotNotifier : INotifier
 {
