@@ -1,0 +1,157 @@
+<div class="matchups-container">
+  <!-- Matchups Page -->
+  
+  <!-- Teams Section -->
+  <div class="teams-section">
+    <!-- My Team -->
+    <div class="team-panel">
+      <h2>MY TEAM</h2>
+      <div class="team-slots">
+        <div class="slot" *ngFor="let hero of myTeam()" (click)="removeHero(hero, 'my')">
+          <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name">
+          <div class="slot-name">{{ hero.localized_name }}</div>
+        </div>
+        <div class="slot empty" *ngIf="myTeam().length < 5" (click)="openPicker('my')">
+          <span>+</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enemy Team -->
+    <div class="team-panel">
+      <h2>ENEMY TEAM</h2>
+      <div class="team-slots">
+        <div class="slot" *ngFor="let hero of enemyTeam()" (click)="removeHero(hero, 'enemy')">
+          <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name">
+          <div class="slot-name">{{ hero.localized_name }}</div>
+        </div>
+        <div class="slot empty" *ngIf="enemyTeam().length < 5" (click)="openPicker('enemy')">
+          <span>+</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div class="results-section">
+    
+    <!-- Best Ally -->
+    <div class="result-column">
+      <h3>BEST WITH ALLIES</h3>
+      <div class="result-list">
+        <div class="result-item" *ngFor="let m of bestAlly()">
+          <span class="res-name">{{ m.heroName }}</span>
+          <span class="res-score">{{ m.rating | number:'1.1-1' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Best Computed -->
+    <div class="result-column highlight">
+      <h3>BEST COMPUTED</h3>
+      <div class="result-list">
+        <div class="result-item" *ngFor="let m of bestComputed()">
+          <span class="res-name">{{ m.heroName }}</span>
+          <span class="res-score">{{ m.rating | number:'1.1-1' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Best Versus -->
+    <div class="result-column">
+      <h3>BEST VS ENEMIES</h3>
+      <div class="result-list">
+        <div class="result-item" *ngFor="let m of bestVersus()">
+          <span class="res-name">{{ m.heroName }}</span>
+          <span class="res-score">{{ m.rating | number:'1.1-1' }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Hero Picker Modal -->
+<div class="picker-overlay" *ngIf="isPicking()">
+  <div class="picker-modal">
+    <button class="close-btn" (click)="closePicker()">X</button>
+    
+    <div class="picker-header">
+      <span class="title">CHOOSE HERO</span>
+      <div class="search-box">
+        <input 
+          type="text" 
+          placeholder="Search..." 
+          [ngModel]="searchText()" 
+          (ngModelChange)="searchText.set($event)"
+        >
+        <i class="search-icon">🔍</i>
+      </div>
+    </div>
+
+    <div class="attributes-grid">
+      
+      <div class="attr-column str-col">
+        <div class="attr-header">
+          <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-str-active.png" alt="STR">
+          <span>STRENGTH</span>
+        </div>
+        <div class="hero-list">
+          <div *ngFor="let hero of filteredGroupedHeroes().str" class="hero-card" (click)="selectHero(hero)">
+            <div class="img-wrapper">
+               <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name" loading="lazy">
+            </div>
+            <div class="hero-name">{{ hero.localized_name }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="attr-column agi-col">
+        <div class="attr-header">
+          <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-agi-active.png" alt="AGI">
+          <span>AGILITY</span>
+        </div>
+        <div class="hero-list">
+          <div *ngFor="let hero of filteredGroupedHeroes().agi" class="hero-card" (click)="selectHero(hero)">
+            <div class="img-wrapper">
+               <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name" loading="lazy">
+            </div>
+            <div class="hero-name">{{ hero.localized_name }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="attr-column int-col">
+        <div class="attr-header">
+           <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-int-active.png" alt="INT">
+          <span>INTELLIGENCE</span>
+        </div>
+        <div class="hero-list">
+          <div *ngFor="let hero of filteredGroupedHeroes().int" class="hero-card" (click)="selectHero(hero)">
+            <div class="img-wrapper">
+               <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name" loading="lazy">
+            </div>
+            <div class="hero-name">{{ hero.localized_name }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="attr-column uni-col">
+        <div class="attr-header">
+           <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-uni-active.png" alt="UNI">
+          <span>UNIVERSAL</span>
+        </div>
+        <div class="hero-list">
+          <div *ngFor="let hero of filteredGroupedHeroes().uni" class="hero-card" (click)="selectHero(hero)">
+            <div class="img-wrapper">
+               <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name" loading="lazy">
+            </div>
+            <div class="hero-name">{{ hero.localized_name }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
