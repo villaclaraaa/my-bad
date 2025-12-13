@@ -1,6 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, input, Input } from '@angular/core';
 import { NgFor, NgStyle, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'
+import { WardSimple } from '../../../models/wardsModels';
 
 
 @Component({
@@ -22,11 +23,8 @@ newMatchId: string = '';
   removeMatchId(_t15: number) {
     throw new Error('Method not implemented.');
   }
-  @Input() wards: { x: number; y: number }[] = [
-    { x: 90, y: 146 },
-    { x: 122, y: 122 },
-    { x: 113, y: 151 },
-  ];
+   wards = input<WardSimple[]>([]);
+ 
 
   // IMPORTANT: set this to 128 or 256 depending on your data
   gridSize = 256;

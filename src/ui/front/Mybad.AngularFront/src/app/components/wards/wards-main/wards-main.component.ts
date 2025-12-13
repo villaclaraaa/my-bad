@@ -1,10 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { TabsmenuComponent } from "../tabsmenu/tabsmenu.component";
 import { NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { DotamapComponent } from "../dotamap/dotamap.component";
 import { WardmapComponent } from "../wardmap/wardmap.component";
 import { FormsModule } from '@angular/forms';
 import { EfficiencymapComponent } from "../efficiencymap/efficiencymap.component";
+import { WardsService } from '../../../services/wards.service';
+import { WardSimple } from '../../../models/wardsModels';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-wards-main',
@@ -14,39 +18,34 @@ import { EfficiencymapComponent } from "../efficiencymap/efficiencymap.component
   styleUrl: './wards-main.component.css'
 })
 export class WardsMainComponent {
+
+  private wardsService = inject(WardsService);
+
   accountName: any;
   searchQuery: any;
   searchAccount() {
     throw new Error('Method not implemented.');
   }
+  // UI state
+  activeTab = signal<'map' | 'efficiency'>('map');
 
-  activeTab = 'map';
+   allWards = toSignal(
+    this.wardsService.getWardsMap(136996088).pipe(
+      map(res => res.ObserverWards)
+    ),
+    { initialValue: [] } // default empty array
+  );
 
-  allWards: { x: number; y: number }[] = [
-    { x: 90, y: 146 },
-    { x: 122, y: 122 },
-    { x: 113, y: 151 },
-    { x: 120, y: 65 },
-    { x: 99, y: 88 },
-    { x: 94, y: 120 },
-    { x: 160, y: 120 },
-    { x: 139, y: 91 },
-    { x: 150, y: 116 },
-  ];    // your full list
-  efficiencyWards: { x: number; y: number }[] = [
-    { x: 90, y: 146 },
-    { x: 122, y: 122 },
-    { x: 113, y: 151 },
-    { x: 120, y: 65 },
-    { x: 99, y: 88 },
-    { x: 94, y: 120 },
-  ]; // wards highlighted for efficiency tab
+  efficiencyWards = signal<WardSimple[]>([
+    { X: 122, Y: 122, Amount: 1 }
+  ]);
 
-  get wardsForCurrentTab() {
-    console.log(this.activeTab);
-    return this.allWards;
-    // return this.activeTab === 'map'
-    //   ? this.allWards
-    //   : this.efficiencyWards;
+  // derived state
+  wardsForCurrentTab = computed(() => 
+    this.activeTab() === 'map' ? this.allWards() : this.efficiencyWards());
+
+  // example tab switch
+  setTab(tab: 'map' | 'efficiency') {
+    this.activeTab.set(tab);
   }
 }

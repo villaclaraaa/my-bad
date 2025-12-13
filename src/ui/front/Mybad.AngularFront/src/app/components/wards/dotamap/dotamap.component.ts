@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, HostListener } from '@angular/core';
+import { AfterViewInit, Component, Input, HostListener, input } from '@angular/core';
 import { WardSimple } from '../../../models/wardsModels';
 import { NgStyle, NgForOf } from '@angular/common';
 
@@ -10,14 +10,8 @@ import { NgStyle, NgForOf } from '@angular/common';
   styleUrl: './dotamap.component.css'
 })
 export class DotamapComponent implements AfterViewInit {
- @Input() wards: { x: number; y: number }[] = [
-    { x: 90, y: 146 },
-    { x: 122, y: 122 },
-    { x: 113, y: 151 },
-    { x: 120, y: 65 },
-    { x: 99, y: 88 },
-    { x: 94, y: 120 },
-  ]
+   wards = input<WardSimple[]>([]);
+ 
 
   // ---------------------------------------------
   // ORIGINAL IMAGE SIZE (must match your real file)

@@ -11,11 +11,11 @@
 
     <!-- Red Dots -->
     <div
-      *ngFor="let w of wards"
+      *ngFor="let w of wards()"
       class="absolute bg-red-500 w-3 h-3 rounded-full border border-white z-20"
       [ngStyle]="{
-        left: getScaledX(w.x) + 'px',
-        top: getScaledY(w.y) + 'px'
+        left: getScaledX(w.X) + 'px',
+        top: getScaledY(w.Y) + 'px'
       }"
     ></div>
 

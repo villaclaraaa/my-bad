@@ -1,5 +1,5 @@
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { WardsMapApiResponse } from '../models/wardsModels';
 
@@ -7,19 +7,26 @@ import { WardsMapApiResponse } from '../models/wardsModels';
   providedIn: 'root'
 })
 export class WardsService {
+  // Modern Angular 18: inject HttpClient instead of constructor injection
+  private http = inject(HttpClient);
 
-  private basePath: string = `api/wards/`;
+  // Base path can also be provided via environment.ts or injection token
+  private readonly basePath = 'https://localhost:7012/api/wards';
 
-  constructor(private http: HttpClient) { }
-
-  private headers1: HttpHeaders = new HttpHeaders({
-    'Content-Type': 'application/json'
+  // Default headers (can be extended per request)
+  private readonly defaultHeaders = new HttpHeaders({
+    'Content-Type': 'application/json',
   });
 
-
-  getWardsMap(accId: number) : Observable<WardsMapApiResponse> {
-    const url = `${this.basePath}/map`;
-    return this.http.get<WardsMapApiResponse>(url);
+  /**
+   * Fetch ward map for a given account ID
+   * @param accId - account ID
+   * @returns Observable of WardsMapApiResponse
+   */
+  getWardsMap(accId: number): Observable<WardsMapApiResponse> {
+    const url = `${this.basePath}/map?accId=${accId}`;
+    return this.http.get<WardsMapApiResponse>(url, {
+      headers: this.defaultHeaders
+    });
   }
-
 }
