@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, input, Input, output, Output } from '@angular/core';
 import { NgFor } from '@angular/common';
+type TabKey = 'map' | 'efficiency';
 
 @Component({
   selector: 'app-tabsmenu',
@@ -9,15 +10,12 @@ import { NgFor } from '@angular/common';
   styleUrl: './tabsmenu.component.css'
 })
 export class TabsmenuComponent {
-@Input() tabs: { key: string; label: string }[] = [];
-@Input() activeTab: string = 'map';
+tabs = input<{ key: TabKey; label: string }[]>([]);
+  activeTab = input<TabKey>('map');
 
-  selectTab(tab: string) {
-    this.activeTab = tab;
-    this.activeTabChange.emit(tab); // tell parent
+  activeTabChange = output<TabKey>();
 
+  selectTab(tab: TabKey) {
+    this.activeTabChange.emit(tab);
   }
-
-  @Output() activeTabChange = new EventEmitter<string>(); // notify parent
-
 }

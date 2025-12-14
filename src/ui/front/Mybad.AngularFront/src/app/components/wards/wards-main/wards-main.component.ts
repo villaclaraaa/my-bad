@@ -8,7 +8,7 @@ import { EfficiencymapComponent } from "../efficiencymap/efficiencymap.component
 import { WardsService } from '../../../services/wards.service';
 import { WardSimple } from '../../../models/wardsModels';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { map, tap } from 'rxjs';
 
 @Component({
   selector: 'app-wards-main',
@@ -31,21 +31,26 @@ export class WardsMainComponent {
 
    allWards = toSignal(
     this.wardsService.getWardsMap(136996088).pipe(
-      map(res => res.ObserverWards)
-    ),
+      tap(res => console.log('API response:', res.observerWards)),
+    map(res => {
+      const wards = res.observerWards;
+      console.log('Extracted wards:', wards);       // log extracted wards
+      return wards;
+    })),
     { initialValue: [] } // default empty array
   );
 
   efficiencyWards = signal<WardSimple[]>([
-    { X: 122, Y: 122, Amount: 1 }
+    { x: 122, y: 122, amount: 1 }
   ]);
 
   // derived state
-  wardsForCurrentTab = computed(() => 
+  wardsForCurrentTab = computed(() =>
     this.activeTab() === 'map' ? this.allWards() : this.efficiencyWards());
 
   // example tab switch
   setTab(tab: 'map' | 'efficiency') {
     this.activeTab.set(tab);
   }
+  
 }

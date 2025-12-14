@@ -31,19 +31,23 @@
   <!-- RIGHT: Tabs + Content -->
   <div class="w-full md:w-1/2 flex flex-col gap-4">
 
-    <app-tabsmenu [tabs]="[
-        { key: 'map', label: 'Map' },
-        { key: 'efficiency', label: 'Efficiency' }
-      ]" [(activeTab)]="activeTab">
-    </app-tabsmenu>
+    <app-tabsmenu
+  [tabs]="[
+    { key: 'map', label: 'Map' },
+    { key: 'efficiency', label: 'Efficiency' }
+  ]"
+  [activeTab]="activeTab()"
+  (activeTabChange)="activeTab.set($event)"
+>
+</app-tabsmenu>
 
     <ng-container [ngSwitch]="activeTab">
       <div *ngSwitchCase="'map'">
-        <app-wardmap></app-wardmap>
+        <app-wardmap [wards]="wardsForCurrentTab()"></app-wardmap>
       </div>
 
       <div *ngSwitchCase="'efficiency'">
-        <app-efficiencymap></app-efficiencymap>
+        <app-efficiencymap [wards]="wardsForCurrentTab()"></app-efficiencymap>
       </div>
     </ng-container>
 

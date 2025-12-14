@@ -1,11 +1,13 @@
 export interface WardSimple {
-    X: number;
-    Y: number;
-    Amount: number 
+    x: number;
+    y: number;
+    amount: number 
 }
 
 export interface WardsMapApiResponse {
-    ObserverWards: WardSimple[];
-    SentryWards: WardSimple[];
-    AccountId: number;
+    observerWards: WardSimple[];
+    sentryWards: WardSimple[];
+    accountId: number;
+    id: number;
+    errors: string[];
 }

@@ -1,4 +1,4 @@
-import { Component, input, Input } from '@angular/core';
+import { Component, effect, input, Input } from '@angular/core';
 import { NgFor, NgStyle, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'
 import { WardSimple } from '../../../models/wardsModels';
@@ -13,5 +13,12 @@ import { WardSimple } from '../../../models/wardsModels';
 export class WardmapComponent {
 
   wards = input<WardSimple[]>([]);
+
+  constructor() {
+      // Log whenever the input changes
+      effect(() => {
+        console.log('WARDMAPCOMPOENNT wards from parent:', this.wards());
+      });
+    }
 
 }

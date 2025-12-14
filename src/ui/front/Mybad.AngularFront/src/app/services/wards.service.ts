@@ -11,7 +11,7 @@ export class WardsService {
   private http = inject(HttpClient);
 
   // Base path can also be provided via environment.ts or injection token
-  private readonly basePath = 'https://localhost:7012/api/wards';
+  private readonly basePath = 'http://localhost:5138/api/wards';
 
   // Default headers (can be extended per request)
   private readonly defaultHeaders = new HttpHeaders({
@@ -24,7 +24,7 @@ export class WardsService {
    * @returns Observable of WardsMapApiResponse
    */
   getWardsMap(accId: number): Observable<WardsMapApiResponse> {
-    const url = `${this.basePath}/map?accId=${accId}`;
+    const url = `${this.basePath}/map?accountId=${accId}`;
     return this.http.get<WardsMapApiResponse>(url, {
       headers: this.defaultHeaders
     });
