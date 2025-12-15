@@ -29,6 +29,7 @@ public static class DependencyInjection
 		services.AddScoped<IInfoProvider<WardMapRequest, WardsMapPlacementResponse>, ODotaWardPlacementMapProvider>();
 		services.AddScoped<IInfoProvider<WardLogSingleMatchRequest, WardsLogMatchResponse>, ODotaWardsSingleMatchProvider>();
 		services.AddScoped<IInfoProvider<WardsEfficiencyRequest, WardsEfficiencyResponse>, ODotaWardEfficiencyProvider>();
+		services.AddScoped<IInfoProvider<PlayerInfoRequest, PlayerInfoResponse>, ODotaPlayerInfoProvider>();
 
 		return services;
 	}
