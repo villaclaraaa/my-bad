@@ -18,6 +18,9 @@ namespace Mybad.Services.OpenDota.Cachers
 			_checkedMatchesService = checkedMatchesService;
 			_sp = sp;
 		}
+
+		public long CachedMatchesCount => _checkedMatchesService.CheckedMatchesCount;
+
 		public async Task UpdateHeroMatchupsDatabase(int minRank)
 		{
 			var http = _factory.CreateClient("ODota");
@@ -107,5 +110,4 @@ namespace Mybad.Services.OpenDota.Cachers
 			dict[(heroA, heroB)].GamesPlayed++;
 		}
 	}
-
 }
