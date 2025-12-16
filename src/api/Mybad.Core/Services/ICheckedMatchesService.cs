@@ -19,4 +19,9 @@ public interface ICheckedMatchesService
 	/// <param name="checkedMatches">A list of match IDs to be marked as checked. Cannot be null or contain duplicate values.</param>
 	/// <returns>A task that represents the asynchronous operation.</returns>
 	public Task AddCheckedMatches(List<long> checkedMatches);
+
+	/// <summary>
+	/// Gets checked matches count.
+	/// </summary>
+	public long CheckedMatchesCount { get; }
 }

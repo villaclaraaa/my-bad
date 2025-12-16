@@ -26,15 +26,6 @@ public class ODotaWardPlacementMapProvider : IInfoProvider<WardMapRequest, Wards
 		var response = new WardsMapPlacementResponse(request.AccountId);
 		var http = _factory.CreateClient("ODota");
 
-		// Pinging ODota API to check if it's reachable
-		var ping = await http.GetAsync("health");
-		if (!ping.IsSuccessStatusCode)
-		{
-			_logger.LogWarning("OpenDota API is not reachable. Status code: {StatusCode}", ping.StatusCode);
-			response.Errors.Add($"OpenDota API is not reachable. Status code: {ping.StatusCode}");
-			return response;
-		}
-
 		// Get recent matches
 		var apiResponse = await http.GetAsync($"players/{request.AccountId}/wardmap?having=100");
 		if (!apiResponse.IsSuccessStatusCode)
