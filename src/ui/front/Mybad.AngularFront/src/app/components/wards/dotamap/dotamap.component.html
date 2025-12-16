@@ -12,9 +12,11 @@
     <!-- Red Dots -->
     <div
     *ngFor="let w of scaledWards()"
-    class="absolute bg-red-500 w-3 h-3 rounded-full border border-white z-20"
+    class="absolute w-3 h-3 rounded-full border border-white z-20"
     [style.left.px]="w.left"
     [style.top.px]="w.top"
+    [ngClass]="w.amount < 2 ? 'bg-blue-500' : 'bg-yellow-500'" 
+    [ngClass]="w.efficiency && w.efficiency > 0 ? 'bg-green-500' : 'bg-red-500'"
   ></div>
 
   </div>

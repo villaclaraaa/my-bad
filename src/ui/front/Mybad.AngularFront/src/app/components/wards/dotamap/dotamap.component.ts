@@ -1,11 +1,11 @@
 import { AfterViewInit, Component, Input, HostListener, input, effect, computed, signal } from '@angular/core';
-import { WardSimple } from '../../../models/wardsModels';
-import { NgStyle, NgForOf } from '@angular/common';
+import { WardSimpleMap } from '../../../models/wardsModels';
+import { NgStyle, NgForOf, NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-dotamap',
   standalone: true,
-  imports: [NgStyle, NgForOf],
+  imports: [NgStyle, NgForOf, NgClass],
   templateUrl: './dotamap.component.html',
   styleUrl: './dotamap.component.css'
 })
@@ -13,7 +13,7 @@ export class DotamapComponent implements AfterViewInit {
   //  wards = input<WardSimple[]>([
   //   {X: 80, Y: 80, Amount: 10}
   //  ]);
- 
+
   //  constructor() {
   //   // Log whenever the input changes
   //   effect(() => {
@@ -75,7 +75,7 @@ export class DotamapComponent implements AfterViewInit {
   //  minCoord = 66;        // playable area min
   // maxCoord = 192;       // playable area max
 
-  
+
   //  minCoordY = 62;        // playable area min
   // maxCoordY = 190;       // playable area max
 
@@ -113,14 +113,14 @@ export class DotamapComponent implements AfterViewInit {
   //   return (zz / this.originalHeight) * this.imageHeight;
   // }
 
-  wards = input<WardSimple[]>([
+  wards = input<WardSimpleMap[]>([
     { x: 80, y: 80, amount: 10 },
   ]);
 
   constructor() {
     effect(() => {
       console.log('Received wards from parent:', this.wards());
-  console.log('scaledWards:', this.scaledWards());
+      console.log('scaledWards:', this.scaledWards());
 
     });
   }
@@ -158,7 +158,7 @@ export class DotamapComponent implements AfterViewInit {
   // -----------------------------
   private mapImageElement?: HTMLImageElement;
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { }
 
   // -----------------------------
   // IMAGE LOAD + RESIZE
@@ -199,20 +199,18 @@ export class DotamapComponent implements AfterViewInit {
   // FINAL SCALED WARDS (COMPUTED)
   // -----------------------------
   scaledWards = computed(() => {
-  const iw = this.imageWidth();   // reactive
-  const ih = this.imageHeight();  // reactive
-  return this.wards().map(w => {
-    // scale X/Y first
-    const baseX = ((w.x - this.minCoord) / this.coordRange) * this.mapSize;
-    const baseY = this.mapSize - ((w.y - this.minCoordY) / this.coordRangeY) * this.mapSize;
-
-
-    return {
-      ...w,
-      left: (baseX / this.originalWidth) * iw,
-      top: (baseY / this.originalHeight) * ih,
-    };
+    const iw = this.imageWidth();   // reactive
+    const ih = this.imageHeight();  // reactive
+    return this.wards().map(w => {
+      // scale X/Y first
+      const baseX = ((w.x - this.minCoord) / this.coordRange) * this.mapSize;
+      const baseY = this.mapSize - ((w.y - this.minCoordY) / this.coordRangeY) * this.mapSize;
+      return {
+        ...w,
+        left: (baseX / this.originalWidth) * iw,
+        top: (baseY / this.originalHeight) * ih,
+      };
+    });
   });
-});
 
 }

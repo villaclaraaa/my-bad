@@ -1,25 +1,29 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { TabsmenuComponent } from "../tabsmenu/tabsmenu.component";
-import { NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
+import { NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
 import { DotamapComponent } from "../dotamap/dotamap.component";
 import { WardmapComponent } from "../wardmap/wardmap.component";
 import { FormsModule } from '@angular/forms';
 import { EfficiencymapComponent } from "../efficiencymap/efficiencymap.component";
 import { WardsService } from '../../../services/wards.service';
-import { WardSimple } from '../../../models/wardsModels';
+import { WardSimpleMap } from '../../../models/wardsModels';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { map, tap } from 'rxjs';
 
 @Component({
   selector: 'app-wards-main',
   standalone: true,
-  imports: [TabsmenuComponent, NgIf, NgSwitch, NgSwitchCase, DotamapComponent, WardmapComponent, FormsModule, EfficiencymapComponent],
+  imports: [TabsmenuComponent, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault, DotamapComponent, WardmapComponent, FormsModule, EfficiencymapComponent],
   templateUrl: './wards-main.component.html',
   styleUrl: './wards-main.component.css'
 })
 export class WardsMainComponent {
 
   private wardsService = inject(WardsService);
+
+  constructor(){
+    effect(() => console.log("active tab", this.activeTab()));
+};
 
   accountName: number | string = 'None';
   searchQuery: any;
@@ -44,11 +48,7 @@ export class WardsMainComponent {
     this.wardsService.getWardsEfficiency(136996088).pipe(
       tap(res => console.log('API response:', res.observerWards)),
       map(res => {
-        const wards: WardSimple[] = res.observerWards.map(w => ({
-          x: w.x,
-          y: w.y,
-          amount: w.amount,
-        }));
+        const wards = res.observerWards;
         console.log('Extracted wards:', wards);       // log extracted wards
         return wards;
       })),
