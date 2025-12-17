@@ -9,6 +9,7 @@ import { WardsService } from '../../../services/wards.service';
 import { WardSimpleMap } from '../../../models/wardsModels';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { map, tap } from 'rxjs';
+import { PlayerService } from '../../../services/player.service';
 
 @Component({
   selector: 'app-wards-main',
@@ -20,16 +21,37 @@ import { map, tap } from 'rxjs';
 export class WardsMainComponent {
 
   private wardsService = inject(WardsService);
+  private playerService = inject(PlayerService);
 
   constructor(){
     effect(() => console.log("active tab", this.activeTab()));
 };
 
+  avatarUrl: string = '';
   accountName: number | string = 'None';
-  searchQuery: any;
+  searchQuery: number = 0;
   searchAccount() {
-    throw new Error('Method not implemented.');
+    console.log('test', this.searchQuery);
+    this.playerService.getBasePlayerInfo(this.searchQuery).subscribe(
+      {
+        next: (data) => {
+          if (!data.playerInfo) {
+            this.accountName = "not found";
+            this.avatarUrl = '';
+            return;
+          }
+          
+          this.accountName = data.playerInfo.personaName;
+          this.avatarUrl = data.playerInfo.avatarMediumUrl;
+        },
+        error: () => {
+          this.accountName = "not found";
+          this.avatarUrl = '';
+        }
+      }
+        );
   }
+
   // UI state
   activeTab = signal<'map' | 'efficiency'>('map');
 

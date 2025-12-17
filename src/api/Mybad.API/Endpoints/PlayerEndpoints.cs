@@ -10,7 +10,8 @@ public static class PlayerEndpoints
 {
 	public static RouteGroupBuilder MapPlayerEndpoints(this IEndpointRouteBuilder routes)
 	{
-		var group = routes.MapGroup("api/players").WithTags("Players");
+		var group = routes.MapGroup("api/players").WithTags("Players")
+			.RequireCors("AllowAngularApp");
 
 		// Define ward-related endpoints here
 		group.MapGet("baseinfo", GetBasePlayerInfo);
