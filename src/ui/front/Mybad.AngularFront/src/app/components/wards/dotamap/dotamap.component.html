@@ -1,23 +1,24 @@
-<div class="w-full flex justify-center">
-  <div class="relative border rounded-xl overflow-hidden shadow">
+<div class="flex flex-col md:flex-row w-full h-full p-4 gap-4">
 
-    <!-- Map Image -->
-    <img
-      #mapImg
-      class="block w-full lg:w-[500px] lg:h-[500px]"
-      src="assets/img/detailed_738.jpg"
-      (load)="onImageLoad(mapImg)"
-    />
+  <div class="w-full md:w-2/5 flex justify-center">
+ <div class="relative inline-block w-full max-w-[550px] aspect-square border rounded-xl overflow-hidden shadow">
 
-    <!-- Red Dots -->
-    <div
-    *ngFor="let w of scaledWards()"
-    class="absolute w-3 h-3 rounded-full border border-white z-20"
-    [style.left.px]="w.left"
-    [style.top.px]="w.top"
-    [ngClass]="w.amount < 2 ? 'bg-blue-500' : 'bg-yellow-500'" 
-    [ngClass]="w.efficiency && w.efficiency > 0 ? 'bg-green-500' : 'bg-red-500'"
-  ></div>
+      <!-- Map Image -->
+      <img #mapImg class="absolute inset-0 w-full h-full object-cover" src="assets/img/detailed_738.jpg"
+        (load)="onImageLoad(mapImg)" />
 
+      <!-- Red Dots -->
+      <div
+        *ngFor="let w of scaledWards()"
+        class="absolute w-3 h-3 rounded-full border border-white z-20"
+        [style.left.px]="w.left"
+        [style.top.px]="w.top"
+        [ngClass]="
+          w.efficiency && w.efficiency > 0
+            ? 'bg-green-500'
+            : 'bg-red-500'
+        "
+      ></div>
+    </div>
   </div>
-</div>
+  </div>

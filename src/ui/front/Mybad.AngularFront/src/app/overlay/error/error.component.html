@@ -1,0 +1,16 @@
+<div
+  *ngIf="hasErrors()"
+  class="absolute inset-0 z-50 flex items-center justify-center bg-black/70"
+>
+  <div class="max-w-lg w-full mx-4 bg-slate-800 text-red-200 rounded-xl shadow-lg p-6">
+    <h2 class="text-xl font-semibold mb-4 text-red-400">
+      Errors occurred
+    </h2>
+
+    <ul class="list-disc list-inside space-y-2">
+      <li *ngFor="let err of errorMessages()">
+        {{ err }}
+      </li>
+    </ul>
+  </div>
+</div>

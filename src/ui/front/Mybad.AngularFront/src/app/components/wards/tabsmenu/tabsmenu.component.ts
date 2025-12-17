@@ -1,6 +1,6 @@
 import { Component, EventEmitter, input, Input, output, Output } from '@angular/core';
 import { NgFor } from '@angular/common';
-type TabKey = 'map' | 'efficiency';
+type TabKey = 'map' | 'efficiency' | 'none';
 
 @Component({
   selector: 'app-tabsmenu',
@@ -11,7 +11,7 @@ type TabKey = 'map' | 'efficiency';
 })
 export class TabsmenuComponent {
 tabs = input<{ key: TabKey; label: string }[]>([]);
-  activeTab = input<TabKey>('map');
+  activeTab = input<TabKey>('none');
 
   activeTabChange = output<TabKey>();
 

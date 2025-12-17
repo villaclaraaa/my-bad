@@ -8,10 +8,10 @@
 
   <!-- Flexible input -->
   <input
-    type="number"
+    type="text"
     [(ngModel)]="searchQuery"
     placeholder="Search account…"
-    class="flex-1 min-w-0 px-3 py-1 bg-slate-700 text-gray-200 placeholder-gray-400
+    class=" min-w-0 px-3 py-1 bg-slate-700 text-gray-200 placeholder-gray-400
            rounded-md border border-slate-600
            focus:outline-none focus:ring-2 focus:ring-blue-400"
   />
@@ -54,6 +54,8 @@
 
 </div>
 
+<div class="relative flex-1">
+
 <ng-container [ngSwitch]="activeTab()">
   <div *ngSwitchCase="'map'" class="w-full"> 
     <app-wardmap [wards]="wardsForCurrentTab()"></app-wardmap> 
@@ -61,5 +63,14 @@
   <div *ngSwitchCase="'efficiency'"> 
     <app-efficiencymap [wards]="wardsForCurrentTab()"></app-efficiencymap> 
   </div>
-  <div *ngSwitchDefault> Unknown tab: {{ activeTab() }} </div>
+  <div *ngSwitchCase="'none'">
+    <p class="text-center p-10 m-10">Enter steam account Id to perform search in input field.</p>
+  </div>
 </ng-container>
+
+
+  <app-error [errorMessages]="apiErrors()"></app-error>
+
+  
+</div>
+<app-loadingspinner [isLoading]="isLoading()"></app-loadingspinner>

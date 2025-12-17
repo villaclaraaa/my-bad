@@ -1,4 +1,6 @@
-export interface Player {
+import { BaseApiResponse } from "./baseApiResponse";
+
+export interface Player extends BaseApiResponse {
     accountId: number;
     playerInfo: PlayerInfo;
 }

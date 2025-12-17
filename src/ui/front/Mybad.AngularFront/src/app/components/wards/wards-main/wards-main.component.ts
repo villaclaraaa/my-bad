@@ -1,20 +1,20 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { TabsmenuComponent } from "../tabsmenu/tabsmenu.component";
-import { NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
-import { DotamapComponent } from "../dotamap/dotamap.component";
+import { NgSwitch, NgSwitchCase } from '@angular/common';
 import { WardmapComponent } from "../wardmap/wardmap.component";
 import { FormsModule } from '@angular/forms';
 import { EfficiencymapComponent } from "../efficiencymap/efficiencymap.component";
 import { WardsService } from '../../../services/wards.service';
-import { WardSimpleMap } from '../../../models/wardsModels';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { map, tap } from 'rxjs';
+import { filter, map, switchMap, tap } from 'rxjs';
 import { PlayerService } from '../../../services/player.service';
+import { ErrorComponent } from '../../../overlay/error/error.component';
+import { LoadingspinnerComponent } from '../../../overlay/loadingspinner/loadingspinner.component';
 
 @Component({
   selector: 'app-wards-main',
   standalone: true,
-  imports: [TabsmenuComponent, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault, DotamapComponent, WardmapComponent, FormsModule, EfficiencymapComponent],
+  imports: [TabsmenuComponent, NgSwitch, NgSwitchCase, WardmapComponent, FormsModule, EfficiencymapComponent, ErrorComponent, LoadingspinnerComponent],
   templateUrl: './wards-main.component.html',
   styleUrl: './wards-main.component.css'
 })
@@ -29,53 +29,78 @@ export class WardsMainComponent {
 
   avatarUrl: string = '';
   accountName: number | string = 'None';
-  searchQuery: number = 0;
+  searchQuery: string = '';
+
+  accountId = signal<number | null>(null);
+
+  apiErrors = signal<string[]>([]);
+  isLoading = signal(false);
   searchAccount() {
-    console.log('test', this.searchQuery);
-    this.playerService.getBasePlayerInfo(this.searchQuery).subscribe(
-      {
-        next: (data) => {
-          if (!data.playerInfo) {
-            this.accountName = "not found";
-            this.avatarUrl = '';
-            return;
-          }
-          
-          this.accountName = data.playerInfo.personaName;
-          this.avatarUrl = data.playerInfo.avatarMediumUrl;
-        },
-        error: () => {
-          this.accountName = "not found";
-          this.avatarUrl = '';
-        }
+    const accountId1 = Number(this.searchQuery);
+
+  if (Number.isNaN(accountId1)) {
+    this.accountName = 'not found';
+    this.avatarUrl = '';
+    return;
+  }
+
+  this.isLoading.set(true);
+    this.playerService.getBasePlayerInfo(accountId1).subscribe({
+    next: (data) => {
+
+      if (data.errors.length > 0) {
+        this.apiErrors.set(data.errors);
+        this.isLoading.set(false);
+      return;
       }
-        );
+      if (!data.playerInfo) {
+        this.accountName = 'not found';
+        this.avatarUrl = '';
+        return;
+      }
+      
+      this.apiErrors.set([]);
+      this.accountName = data.playerInfo.personaName;
+      this.avatarUrl = data.playerInfo.avatarMediumUrl;
+
+      this.activeTab.set('map');
+      this.accountId.set(accountId1);
+    },
+    error: () => {
+      this.accountName = 'not found';
+      this.avatarUrl = '';
+      this.isLoading.set(false);
+    }
+  });
   }
 
   // UI state
-  activeTab = signal<'map' | 'efficiency'>('map');
+  activeTab = signal<'map' | 'efficiency' | 'none'>('none');
 
   allWards = toSignal(
-    this.wardsService.getWardsMap(136996088).pipe(
-      tap(res => console.log('API response:', res.observerWards)),
-      map(res => {
-        const wards = res.observerWards;
-        console.log('Extracted wards:', wards);       // log extracted wards
-        return wards;
-      })),
-    { initialValue: [] } // default empty array
-  );
+  toObservable(this.accountId).pipe(
+    filter((id): id is number => id !== null),
+    switchMap(id =>
+      this.wardsService.getWardsMap(id).pipe(
+        map(res => res.observerWards)
+      )
+    ),
+    tap(() => this.isLoading.set(false))
+  ),
+  { initialValue: [] }
+);
 
-  efficiencyWards = toSignal(
-    this.wardsService.getWardsEfficiency(136996088).pipe(
-      tap(res => console.log('API response:', res.observerWards)),
-      map(res => {
-        const wards = res.observerWards;
-        console.log('Extracted wards:', wards);       // log extracted wards
-        return wards;
-      })),
-    { initialValue: [] } // default empty array
-  );
+efficiencyWards = toSignal(
+  toObservable(this.accountId).pipe(
+    filter((id): id is number => id !== null),
+    switchMap(id =>
+      this.wardsService.getWardsEfficiency(id).pipe(
+        map(res => res.observerWards)
+      )
+    )
+  ),
+  { initialValue: [] }
+);
 
 
   /* THE METHOD ONLY FOR DEVELOPMENT

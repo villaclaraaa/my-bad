@@ -1,10 +1,10 @@
 <div class="flex flex-col md:flex-row w-full h-full p-4 gap-4">
 
   <div class="w-full md:w-2/5 flex justify-center">
-  <div class="relative inline-block border rounded-xl overflow-hidden shadow">
+ <div class="relative inline-block w-full max-w-[600px] aspect-square border rounded-xl overflow-hidden shadow">
 
       <!-- Map Image -->
-      <img #mapImg class="block w-full lg:w-[500px] lg:h-[500px]" src="assets/img/detailed_738.jpg"
+      <img #mapImg class="absolute inset-0 w-full h-full object-cover" src="assets/img/detailed_738.jpg"
         (load)="onImageLoad(mapImg)" />
 
       <!-- Red Dots -->
@@ -24,7 +24,7 @@
   </div>
 
   <!-- LIST -->
-  <div class="w-full md:w-3/5 flex flex-col md:flex-row items-start gap-6 text-white overflow-y-auto lg:max-h-[500px]">
+  <div class="w-full md:w-3/5 flex flex-col md:flex-row items-start gap-6 text-white overflow-y-auto lg:max-h-[80vh]">
     
     <!-- Wards -->
     <div class="w-full md:w-2/5 bg-slate-800 rounded-xl shadow p-4">
