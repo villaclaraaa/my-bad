@@ -1,31 +1,38 @@
 <div class="flex flex-col md:flex-row w-full h-full p-4 gap-4">
 
   <div class="w-full md:w-2/5 flex justify-center">
- <div class="relative inline-block w-full max-w-[600px] aspect-square border rounded-xl overflow-hidden shadow">
+    <div class="relative inline-block w-full max-w-[600px] aspect-square border rounded-xl overflow-hidden shadow">
 
       <!-- Map Image -->
       <img #mapImg class="absolute inset-0 w-full h-full object-cover" src="assets/img/detailed_738.jpg"
         (load)="onImageLoad(mapImg)" />
 
-      <!-- Red Dots -->
-      <div
+      <div *ngFor="let w of scaledWards()" class="absolute z-20" [style.left.px]="w.left" [style.top.px]="w.top">
+        <div class="relative flex items-center justify-center rounded-full" [style.width.px]="w.size"
+          [style.height.px]="w.size" style="transform: translate(-50%, -50%)">
+          <div class="absolute inset-0 rounded-full border-2 border-green-400 bg-lime-700/40 opacity-80"></div>
+          <img src="assets/img/obs.png" class="relative z-10 w-4 h-3 pointer-events-none" />
+        </div>
+      </div>
+
+      <!-- OLD RED SIMPLE DOTS -->
+      <!-- <div
         *ngFor="let w of scaledWards()"
         class="absolute w-3 h-3 rounded-full border border-white z-20"
         [style.left.px]="w.left"
         [style.top.px]="w.top"
         [ngClass]="
-          w.efficiency && w.efficiency > 0
-            ? 'bg-green-500'
-            : 'bg-red-500'
+          w.amount > 1 ? 'bg-green-500' : 'bg-red-500'
         "
-      ></div>
+      ><img src="assets/img/obs.png"/>
+    </div> -->
 
     </div>
   </div>
 
   <!-- LIST -->
   <div class="w-full md:w-3/5 flex flex-col md:flex-row items-start gap-6 text-white overflow-y-auto lg:max-h-[80vh]">
-    
+
     <!-- Wards -->
     <div class="w-full md:w-2/5 bg-slate-800 rounded-xl shadow p-4">
       <h2 class="text-lg font-semibold mb-3 text-white">Wards by Efficiency</h2>
@@ -36,7 +43,6 @@
         </li>
       </ul>
     </div>
-
 
     <!-- Match IDs list -->
     <div class="w-full md:w-2/5 bg-slate-800 rounded-xl shadow p-4">
@@ -56,5 +62,4 @@
     </div>
 
   </div>
-
 </div>

@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { TabsmenuComponent } from "../tabsmenu/tabsmenu.component";
-import { NgSwitch, NgSwitchCase } from '@angular/common';
+import { NgSwitch, NgSwitchCase, NgIf } from '@angular/common';
 import { WardmapComponent } from "../wardmap/wardmap.component";
 import { FormsModule } from '@angular/forms';
 import { EfficiencymapComponent } from "../efficiencymap/efficiencymap.component";
@@ -14,7 +14,13 @@ import { LoadingspinnerComponent } from '../../../overlay/loadingspinner/loading
 @Component({
   selector: 'app-wards-main',
   standalone: true,
-  imports: [TabsmenuComponent, NgSwitch, NgSwitchCase, WardmapComponent, FormsModule, EfficiencymapComponent, ErrorComponent, LoadingspinnerComponent],
+  imports: [TabsmenuComponent,
+    NgSwitch, NgSwitchCase, NgIf,
+    WardmapComponent,
+    FormsModule,
+    EfficiencymapComponent,
+    ErrorComponent,
+    LoadingspinnerComponent],
   templateUrl: './wards-main.component.html',
   styleUrl: './wards-main.component.css'
 })
@@ -23,9 +29,9 @@ export class WardsMainComponent {
   private wardsService = inject(WardsService);
   private playerService = inject(PlayerService);
 
-  constructor(){
+  constructor() {
     effect(() => console.log("active tab", this.activeTab()));
-};
+  };
 
   avatarUrl: string = '';
   accountName: number | string = 'None';
@@ -38,69 +44,69 @@ export class WardsMainComponent {
   searchAccount() {
     const accountId1 = Number(this.searchQuery);
 
-  if (Number.isNaN(accountId1)) {
-    this.accountName = 'not found';
-    this.avatarUrl = '';
-    return;
-  }
-
-  this.isLoading.set(true);
-    this.playerService.getBasePlayerInfo(accountId1).subscribe({
-    next: (data) => {
-
-      if (data.errors.length > 0) {
-        this.apiErrors.set(data.errors);
-        this.isLoading.set(false);
-      return;
-      }
-      if (!data.playerInfo) {
-        this.accountName = 'not found';
-        this.avatarUrl = '';
-        return;
-      }
-      
-      this.apiErrors.set([]);
-      this.accountName = data.playerInfo.personaName;
-      this.avatarUrl = data.playerInfo.avatarMediumUrl;
-
-      this.activeTab.set('map');
-      this.accountId.set(accountId1);
-    },
-    error: () => {
+    if (Number.isNaN(accountId1)) {
       this.accountName = 'not found';
       this.avatarUrl = '';
-      this.isLoading.set(false);
+      return;
     }
-  });
+
+    this.isLoading.set(true);
+    this.playerService.getBasePlayerInfo(accountId1).subscribe({
+      next: (data) => {
+
+        if (data.errors.length > 0) {
+          this.apiErrors.set(data.errors);
+          this.isLoading.set(false);
+          return;
+        }
+        if (!data.playerInfo) {
+          this.accountName = 'not found';
+          this.avatarUrl = '';
+          return;
+        }
+
+        this.apiErrors.set([]);
+        this.accountName = data.playerInfo.personaName;
+        this.avatarUrl = data.playerInfo.avatarMediumUrl;
+
+        this.activeTab.set('map');
+        this.accountId.set(accountId1);
+      },
+      error: () => {
+        this.accountName = 'not found';
+        this.avatarUrl = '';
+        this.isLoading.set(false);
+      }
+    });
   }
 
   // UI state
   activeTab = signal<'map' | 'efficiency' | 'none'>('none');
 
   allWards = toSignal(
-  toObservable(this.accountId).pipe(
-    filter((id): id is number => id !== null),
-    switchMap(id =>
-      this.wardsService.getWardsMap(id).pipe(
-        map(res => res.observerWards)
+    toObservable(this.accountId).pipe(
+      filter((id): id is number => id !== null),
+      switchMap(id =>
+        this.wardsService.getWardsMap(id).pipe(
+          map(res => res.observerWards)
+        )
+      ),
+      tap(() => this.isLoading.set(false))
+    ),
+    { initialValue: [] }
+  );
+
+  efficiencyWards = toSignal(
+    toObservable(this.accountId).pipe(
+      filter((id): id is number => id !== null),
+      switchMap(id =>
+        this.wardsService.getWardsEfficiency(id).pipe(
+          map(res => res.observerWards)
+        )
       )
     ),
-    tap(() => this.isLoading.set(false))
-  ),
-  { initialValue: [] }
-);
-
-efficiencyWards = toSignal(
-  toObservable(this.accountId).pipe(
-    filter((id): id is number => id !== null),
-    switchMap(id =>
-      this.wardsService.getWardsEfficiency(id).pipe(
-        map(res => res.observerWards)
-      )
-    )
-  ),
-  { initialValue: [] }
-);
+    { initialValue: [] }
+  );
 
 
   /* THE METHOD ONLY FOR DEVELOPMENT
