@@ -457,7 +457,7 @@
   {
     "id": 67,
     "localized_name": "Spectre",
-    "primary_attr": "all",
+    "primary_attr": "agi",
     "img": "/apps/dota2/images/dota_react/heroes/spectre.png?",
     "icon": "/apps/dota2/images/dota_react/heroes/icons/spectre.png?"
   },
@@ -880,5 +880,12 @@
     "primary_attr": "agi",
     "img": "/apps/dota2/images/dota_react/heroes/kez.png?",
     "icon": "/apps/dota2/images/dota_react/heroes/icons/kez.png?"
+  },
+  {
+    "id": 155,
+    "localized_name": "Largo",
+    "primary_attr": "str",
+    "img": "/apps/dota2/images/dota_react/heroes/largo.png?",
+    "icon": "/apps/dota2/images/dota_react/heroes/icons/largo.png?"
   }
 ]
