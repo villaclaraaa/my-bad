@@ -65,15 +65,6 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 		var localWards = await _wardService.GetAllForAccountAsync(request.AccountId);
 
 		var http = _factory.CreateClient("ODota");
-		// Pinging ODota API to check if it's reachable
-		var ping = await http.GetAsync("health");
-		if (!ping.IsSuccessStatusCode)
-		{
-			_logger.LogWarning("OpenDota API is not reachable. Status code: {StatusCode}", ping.StatusCode);
-			response.Errors.Add($"OpenDota API is not reachable. Status code: {ping.StatusCode}");
-			response.ObserverWards = [.. localWards.Select(w => ConvertToWardEfficiency(w))];
-			return response;
-		}
 
 		// Get recent matches
 		var rMatchesRequest = await http.GetAsync($"players/{request.AccountId}/recentMatches");

@@ -14,6 +14,9 @@ public class CheckedMatchesService : ICheckedMatchesService
 	}
 
 	/// <inheritdoc />
+	public long CheckedMatchesCount => _context.CheckedMatches.LongCount();
+
+	/// <inheritdoc />
 	public async Task AddCheckedMatches(List<long> checkedMatches)
 	{
 		var entries = checkedMatches.Select(id => new CheckedMatchMatchupEntity { MatchId = id });

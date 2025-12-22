@@ -54,7 +54,7 @@ public class HeroMatchupCacherHostedService : BackgroundService
 			_logger.LogInformation("{@Method} - End service method {@m}.", nameof(HeroMatchupCacherHostedService), nameof(DoWork));
 			if (notifier is not null)
 			{
-				await notifier.NotifyAsync(new NotifyMessage($"<b>[{DateTime.Now}]</b> - UpdateHeroMatchup finished."));
+				await notifier.NotifyAsync(new NotifyMessage($"[{DateTime.Now} UTC]  - UpdateHeroMatchup finished.\nMatches in db - {cacher.CachedMatchesCount}."));
 			}
 		}
 		catch (Exception ex)
