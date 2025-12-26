@@ -97,12 +97,15 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 
 		// First remove already parsed matches. This is in different loop because we can not call dbcontext in parallel.
 		// Only exception is creating own dbcontext in method, but I do not want to do this.
-		foreach (var m in recentMatchesResponse)
+		int i = 0;
+		while (i < recentMatchesResponse.Count)
 		{
-			if (await _matchService.IsMatchParsedAsync(m.MatchId, request.AccountId))
+			if (await _matchService.IsMatchParsedAsync(recentMatchesResponse[i].MatchId, request.AccountId))
 			{
-				recentMatchesResponse.Remove(m);
+				recentMatchesResponse.Remove(recentMatchesResponse[i]);
+				continue;
 			}
+			i++;
 		}
 		// some thread safe lists.
 		var obses = new ConcurrentBag<WardModel>();

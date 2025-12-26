@@ -1,12 +1,12 @@
 import { Component, computed, effect, HostListener, input, Input, signal } from '@angular/core';
-import { NgFor, NgStyle, CommonModule } from '@angular/common';
+import { NgFor, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'
 import { WardSimpleMap } from '../../../models/wardsModels';
 
 @Component({
   selector: 'app-wardmap',
   standalone: true,
-  imports: [NgFor, NgStyle, CommonModule, FormsModule],
+  imports: [NgFor, CommonModule, FormsModule],
   templateUrl: './wardmap.component.html',
   styleUrl: './wardmap.component.css'
 })

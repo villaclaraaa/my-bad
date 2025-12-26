@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { TabsmenuComponent } from "../tabsmenu/tabsmenu.component";
-import { NgSwitch, NgSwitchCase, NgIf } from '@angular/common';
+import { NgSwitch, NgSwitchCase, NgIf, NgClass } from '@angular/common';
 import { WardmapComponent } from "../wardmap/wardmap.component";
 import { FormsModule } from '@angular/forms';
 import { EfficiencymapComponent } from "../efficiencymap/efficiencymap.component";
@@ -20,7 +20,7 @@ import { LoadingspinnerComponent } from '../../../overlay/loadingspinner/loading
     FormsModule,
     EfficiencymapComponent,
     ErrorComponent,
-    LoadingspinnerComponent],
+    LoadingspinnerComponent, NgClass],
   templateUrl: './wards-main.component.html',
   styleUrl: './wards-main.component.css'
 })
@@ -62,6 +62,7 @@ export class WardsMainComponent {
         if (!data.playerInfo) {
           this.accountName = 'not found';
           this.avatarUrl = '';
+          this.isLoading.set(false);
           return;
         }
 
