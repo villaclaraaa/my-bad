@@ -45,6 +45,14 @@ export class WardmapComponent implements OnInit {
   const wards = this.apiResponse()?.observerWards ?? [];
   return [...wards].sort((a, b) => b.amount - a.amount);
 });
+
+hoveredWard = signal<WardSimpleMap | null>(null);
+
+isHovered(w: WardSimpleMap) {
+  const hovered = this.hoveredWard();
+  return hovered?.x === w.x && hovered?.y === w.y;
+}
+
   /* WARDS POSITIONS STUFF
   * OLD (DOTAMAPCOMPONENT)
   */

@@ -204,13 +204,17 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 		return response;
 	}
 
-	private static WardEfficiency ConvertToWardEfficiency(WardModel ward) =>
-		new WardEfficiency()
+	private static WardEfficiency ConvertToWardEfficiency(WardModel ward)
+	{
+		var maxtime = ward.Amount * 360;
+		float timeRatio = (float)ward.TimeLivedSeconds / maxtime;
+		return new WardEfficiency()
 		{
 			X = ward.PosX,
 			Y = ward.PosY,
 			Amount = ward.Amount,
 			AverageTimeLived = ward.TimeLivedSeconds / ward.Amount,
-			EfficiencyScore = (float)Math.Round((ward.TimeLivedSeconds / 360d), 1),
+			EfficiencyScore = (float)Math.Round(Math.Clamp(timeRatio, 0.0f, 1.0f), 2),
 		};
+	}
 }

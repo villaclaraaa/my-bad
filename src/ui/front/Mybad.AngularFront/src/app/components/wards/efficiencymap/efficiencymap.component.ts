@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms'
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, shareReplay, switchMap, tap } from 'rxjs';
 import { WardsService } from '../../../services/wards.service';
+import { WardSimpleEfficiency, WardSimpleMap } from '../../../models/wardsModels';
 
 
 @Component({
@@ -32,7 +33,7 @@ export class EfficiencymapComponent implements OnInit {
   accountId = input<number>(136996088);
   private wardsService = inject(WardsService);
 
-  matchIds: number[] = [1, 2, 3];
+  matchIds = computed(() => this.apiResponse()?.includedMatches);
 
   private isLoadingpage: boolean = true;
 
@@ -50,7 +51,98 @@ export class EfficiencymapComponent implements OnInit {
   ),
   { initialValue: null }
 );
-    
+  
+wardsList = computed(() => {
+  const wards = this.apiResponse()?.observerWards ?? [];
+  return [...wards].sort((a, b) => b.efficiencyScore - a.efficiencyScore);
+});
+
+
+hoveredWard = signal<WardSimpleEfficiency | null>(null);
+
+isHovered(w: WardSimpleEfficiency) {
+  const hovered = this.hoveredWard();
+  return hovered?.x === w.x && hovered?.y === w.y;
+}
+
+
+  private colors = [
+  'border-blue-500 bg-blue-500/40',    // 0.0–0.1
+  'border-sky-500 bg-sky-500/40',      // 0.1–0.2
+  'border-cyan-400 bg-cyan-400/40',    // 0.2–0.3
+  'border-teal-400 bg-teal-400/40',    // 0.3–0.4
+  'border-emerald-400 bg-emerald-400/40', // 0.4–0.5
+  'border-emerald-500 bg-emerald-500/40', // 0.5–0.6
+  'border-green-500 bg-green-500/40',  // 0.6–0.7
+  'border-lime-500 bg-lime-500/40',    // 0.7–0.8
+  'border-lime-400 bg-lime-400/50',    // 0.8–0.9
+  'border-lime-300 bg-lime-300/60'     // 0.9–1.0
+];
+
+
+ getEfficiencyClasses(efficiency: number): string {
+  const step = Math.min(9, Math.floor(efficiency * 10));
+  return this.colors[step];
+}
+
+activeWard = signal<WardSimpleEfficiency | null>(null);
+tooltipPos = signal<{ x: number; y: number } | null>(null);
+toggleWard(w: WardSimpleEfficiency, event: MouseEvent) {
+  event.stopPropagation();
+
+  const isSame =
+    this.activeWard()?.x === w.x &&
+    this.activeWard()?.y === w.y;
+
+  if (isSame) {
+    this.closeTooltip();
+    return;
+  }
+
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+
+  let x = event.clientX + this.OFFSET;
+  let y = event.clientY + this.OFFSET;
+
+  // 🔹 Clamp horizontally
+  if (x + this.TOOLTIP_WIDTH > viewportWidth) {
+    x = event.clientX - this.TOOLTIP_WIDTH - this.OFFSET;
+  }
+
+  // 🔹 Clamp vertically
+  if (y + this.TOOLTIP_HEIGHT > viewportHeight) {
+    y = viewportHeight - this.TOOLTIP_HEIGHT - this.OFFSET;
+  }
+
+  // 🔹 Prevent negative positions
+  x = Math.max(this.OFFSET, x);
+  y = Math.max(this.OFFSET, y);
+
+  this.activeWard.set(w);
+  this.tooltipPos.set({ x, y });
+}
+
+isActive(w: WardSimpleEfficiency) {
+  const active = this.activeWard();
+  return active?.x === w.x && active?.y === w.y;
+}
+
+
+@HostListener('document:click')
+onDocumentClick() {
+  this.closeTooltip();
+}
+
+closeTooltip() {
+  this.activeWard.set(null);
+  this.tooltipPos.set(null);
+}
+
+private readonly TOOLTIP_WIDTH = 160; // px (matches w-40)
+private readonly TOOLTIP_HEIGHT = 110; // approx
+private readonly OFFSET = 12;
+
   // wards = input<WardSimpleMap[]>([]);
 
   /* WARDS POSITIONS RELATED STUFF 
@@ -124,6 +216,7 @@ export class EfficiencymapComponent implements OnInit {
     return this.mapSize - normalized * this.mapSize;
   }
 
+ 
   // -----------------------------
   // FINAL SCALED WARDS (COMPUTED)
   // -----------------------------
@@ -132,7 +225,7 @@ export class EfficiencymapComponent implements OnInit {
     const ih = this.imageHeight();  // reactive
     const size = this.circleSize();
 
-    return this.apiResponse()?.observerWards.map(w => {
+    return this.wardsList().map(w => {
       // scale X/Y first
       const baseX = ((w.x - this.minCoord) / this.coordRange) * this.mapSize;
       const baseY = this.mapSize - ((w.y - this.minCoordY) / this.coordRangeY) * this.mapSize;

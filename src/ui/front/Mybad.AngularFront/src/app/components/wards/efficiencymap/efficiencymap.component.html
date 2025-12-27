@@ -1,19 +1,56 @@
 <div class="flex flex-col md:flex-row w-full h-full p-4 gap-4">
 
   <div class="w-full md:w-2/5 flex justify-center">
-    <div class="relative inline-block w-full max-w-[600px] aspect-square border rounded-xl overflow-hidden shadow">
+     <div class="relative inline-block w-full max-w-[600px] aspect-square border rounded-xl overflow-hidden shadow">
 
       <!-- Map Image -->
       <img #mapImg class="absolute inset-0 w-full h-full object-cover" src="assets/img/detailed_738.jpg"
         (load)="onImageLoad(mapImg)" />
 
-      <div *ngFor="let w of scaledWards()" class="absolute z-20" [style.left.px]="w.left" [style.top.px]="w.top">
-        <div class="relative flex items-center justify-center rounded-full" [style.width.px]="w.size"
-          [style.height.px]="w.size" style="transform: translate(-50%, -50%)">
-          <div class="absolute inset-0 rounded-full border-2 border-green-400 bg-lime-700/40 opacity-80"></div>
+      <div *ngFor="let w of scaledWards()" 
+      class="absolute" [style.left.px]="w.left" [style.top.px]="w.top">
+        <div class="relative flex items-center justify-center rounded-full" 
+        [style.width.px]="w.size"
+          [style.height.px]="w.size" 
+          style="transform: translate(-50%, -50%)"
+          (click)="$event.stopPropagation(); toggleWard(w, $event)">
+          <div class="absolute inset-0 rounded-full border-2 opacity-80  hover:scale-105 hover:cursor-pointer
+            transition-transform duration-200"
+          [ngClass]="getEfficiencyClasses(w.efficiencyScore)"></div>
           <img src="assets/img/obs.png" class="relative z-10 w-4 h-3 pointer-events-none" />
         </div>
+
       </div>
+      
+      <!-- Tooltip -->
+      <div
+  *ngIf="activeWard() && tooltipPos()"
+  class="fixed z-[9999] w-40
+         rounded-lg bg-slate-900 text-white text-xs
+         shadow-lg border border-slate-700 px-3 py-2"
+  [style.left.px]="tooltipPos()!.x + 12"
+  [style.top.px]="tooltipPos()!.y + 12"
+>
+  <div class="font-semibold mb-1">
+    Ward [{{ activeWard()!.x }}, {{ activeWard()!.y }}]
+  </div>
+
+  <div class="flex justify-between">
+    <span>Efficiency</span>
+    <span>{{ activeWard()!.efficiencyScore}}</span>
+  </div>
+
+  <div class="flex justify-between">
+    <span>Avg lived</span>
+    <span>{{ activeWard()!.averageTimeLived }}s</span>
+  </div>
+
+  <div class="flex justify-between">
+    <span>Amount</span>
+    <span class="font-semibold">{{ activeWard()!.amount }}</span>
+  </div>
+</div>
+
 
       <!-- OLD RED SIMPLE DOTS -->
       <!-- <div
@@ -31,24 +68,57 @@
   </div>
 
   <!-- LIST -->
-  <div class="w-full md:w-3/5 flex flex-col md:flex-row items-start gap-6 text-white overflow-y-auto lg:max-h-[80vh]">
-
+  <div class="w-full md:w-3/5 items-start gap-6 text-white overflow-y-auto lg:max-h-[75vh]">
+  <div class="">
+        <p class="text-muted mx-auto align-self-center">Only parsed matches from latest 20 (and already added here) in OpenDota are counted in this list.<br/> 
+        Please parse more matches in OpenDota if you want them to be included.</p>
+      </div>
     <!-- Wards -->
-    <div class="w-full md:w-2/5 bg-slate-800 rounded-xl shadow p-4">
-      <h2 class="text-lg font-semibold mb-3 text-white">Wards by Efficiency</h2>
-      <ul class="space-y-2">
-        <li *ngFor="let w of sortedWards" class="flex justify-between bg-slate-600 p-2 rounded-lg">
-          <span class="text-white">Ward {{ w.id }}</span>
-          <span class="font-semibold">{{ w.efficiency }}</span>
-        </li>
-      </ul>
-    </div>
 
+    <!-- <div class="w-full md:w-2/5 bg-slate-800 rounded-xl shadow p-4">
+  <h2 class="text-lg font-semibold mb-3">Most used wards</h2>
+
+  <div
+    class="grid grid-cols-[2fr_1fr_1fr_1fr] gap-2 text-sm font-semibold
+           text-slate-300 border-b border-slate-600 pb-2 mb-2 lg:max-h-[75vh]"
+  >
+    <span>Ward</span>
+    <span class="text-right">Efficiency</span>
+    <span class="text-right">Avg Time Lived</span>
+    <span class="text-right">Amount</span>
+  </div>
+
+  <div class="space-y-1">
+    <div
+      *ngFor="let w of wardsList()"
+      (mouseenter)="hoveredWard.set(w)"
+      (mouseleave)="hoveredWard.set(null)"
+      class="grid grid-cols-[2fr_1fr_1fr_1fr] gap-2
+             bg-slate-600 px-3 py-2 rounded-lg
+             hover:bg-slate-500 transition cursor-pointer"
+    >
+      <span>Ward [{{ w.x }}, {{ w.y }}]</span>
+
+      <span class="text-right">
+        {{ w.efficiencyScore| number:'1.0-2' }}
+      </span>
+
+      <span class="text-right">
+        {{ w.averageTimeLived }}s
+      </span>
+
+      <span class="text-right font-semibold">
+        {{ w.amount }}
+      </span>
+    </div>
+  </div>
+</div> -->
     <!-- Match IDs list -->
-    <div class="w-full md:w-2/5 bg-slate-800 rounded-xl shadow p-4">
+    <div class="w-full bg-slate-800 rounded-xl shadow p-4">
+      
       <h2 class="text-lg font-semibold mb-3 text-white">Match IDs</h2>
       <ul class="space-y-2">
-        <li *ngFor="let id of matchIds" class="flex items-center justify-between bg-slate-600 p-2 rounded-lg">
+        <li *ngFor="let id of matchIds()" class="flex items-center justify-between bg-slate-600 p-2 rounded-lg">
           <span class="text-white">{{ id }}</span>
           <button (click)="removeMatchId(id)" class="text-red-600 font-semibold">Delete</button>
         </li>
