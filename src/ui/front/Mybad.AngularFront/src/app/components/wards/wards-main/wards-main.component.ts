@@ -57,12 +57,16 @@ export class WardsMainComponent {
         if (data.errors.length > 0) {
           this.apiErrors.set(data.errors);
           this.isLoading.set(false);
+          this.activeTab.set('none');
+          this.accountName = 'not found';
+          this.avatarUrl = '';
           return;
         }
         if (!data.playerInfo) {
           this.accountName = 'not found';
           this.avatarUrl = '';
           this.isLoading.set(false);
+          this.activeTab.set('none');
           return;
         }
 
@@ -72,6 +76,7 @@ export class WardsMainComponent {
 
         this.activeTab.set('map');
         this.accountId.set(accountId1);
+        this.isLoading.set(false);
       },
       error: () => {
         this.accountName = 'not found';
@@ -84,30 +89,30 @@ export class WardsMainComponent {
   // UI state
   activeTab = signal<'map' | 'efficiency' | 'none'>('none');
 
-  allWards = toSignal(
-    toObservable(this.accountId).pipe(
-      filter((id): id is number => id !== null),
-      switchMap(id =>
-        this.wardsService.getWardsMap(id).pipe(
-          map(res => res.observerWards)
-        )
-      ),
-      tap(() => this.isLoading.set(false))
-    ),
-    { initialValue: [] }
-  );
+  // allWards = toSignal(
+  //   toObservable(this.accountId).pipe(
+  //     filter((id): id is number => id !== null),
+  //     switchMap(id =>
+  //       this.wardsService.getWardsMap(id).pipe(
+  //         map(res => res.observerWards)
+  //       )
+  //     ),
+  //     tap(() => this.isLoading.set(false))
+  //   ),
+  //   { initialValue: [] }
+  // );
 
-  efficiencyWards = toSignal(
-    toObservable(this.accountId).pipe(
-      filter((id): id is number => id !== null),
-      switchMap(id =>
-        this.wardsService.getWardsEfficiency(id).pipe(
-          map(res => res.observerWards)
-        )
-      )
-    ),
-    { initialValue: [] }
-  );
+  // efficiencyWards = toSignal(
+  //   toObservable(this.accountId).pipe(
+  //     filter((id): id is number => id !== null),
+  //     switchMap(id =>
+  //       this.wardsService.getWardsEfficiency(id).pipe(
+  //         map(res => res.observerWards)
+  //       )
+  //     )
+  //   ),
+  //   { initialValue: [] }
+  // );
 
 
   /* THE METHOD ONLY FOR DEVELOPMENT
@@ -115,8 +120,8 @@ export class WardsMainComponent {
   * THIS IS TO PREVENT OVER REQUESTING TO ODOTA
   */
   // derived state
-  wardsForCurrentTab = computed(() =>
-    this.activeTab() === 'map' ? this.allWards() : this.efficiencyWards());
+  // wardsForCurrentTab = computed(() =>
+  //   this.activeTab() === 'map' ? this.allWards() : this.efficiencyWards());
 
 
   /*

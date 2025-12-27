@@ -1,17 +1,22 @@
-import { Component, computed, HostListener, input, Input, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, input, Input, OnInit, output, signal } from '@angular/core';
 import { NgFor, NgStyle, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'
-import { WardSimpleMap } from '../../../models/wardsModels';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { filter, map, shareReplay, switchMap, tap } from 'rxjs';
+import { WardsService } from '../../../services/wards.service';
 
 
 @Component({
   selector: 'app-efficiencymap',
   standalone: true,
-  imports: [NgFor, NgStyle, CommonModule, FormsModule],
+  imports: [NgFor, CommonModule, FormsModule],
   templateUrl: './efficiencymap.component.html',
   styleUrl: './efficiencymap.component.css'
 })
-export class EfficiencymapComponent {
+export class EfficiencymapComponent implements OnInit {
+  ngOnInit(): void {
+        this.isLoading.emit(this.isLoadingpage);
+  }
   newMatchId: string = '';
   sortedWards: { id: number, efficiency: number }[] = [
     { id: 1, efficiency: 100 },
@@ -24,19 +29,29 @@ export class EfficiencymapComponent {
     throw new Error('Method not implemented.');
   }
 
+  accountId = input<number>(136996088);
+  private wardsService = inject(WardsService);
 
   matchIds: number[] = [1, 2, 3];
 
-  wards = input<WardSimpleMap[]>([]);
-  // wards = signal<WardSimpleMap[]>([
-  //     {x: 80, y: 80, amount: 1, efficiency: 0},
-  //     {x: 100, y: 90, amount: 1, efficiency: 1},
-  //     {x: 90, y: 100, amount: 1, efficiency: 1},
-  //     {x: 70, y: 80, amount: 1, efficiency: 1},
-  //     {x: 99, y: 84, amount: 1, efficiency: 1},
-  //     {x: 88, y: 84, amount: 1, efficiency: 1},
-  //    ]
-  //    );
+  private isLoadingpage: boolean = true;
+
+  isLoading = output<boolean>();
+
+  wards = toSignal(
+  toObservable(this.accountId).pipe(
+    filter((id): id is number => id !== null),
+    switchMap(id =>
+      this.wardsService.getWardsEfficiencyCached(id).pipe(
+        map(res => res.observerWards),
+        tap(() => {this.isLoadingpage = false; this.isLoading.emit(this.isLoadingpage)})
+      )
+    )
+  ),
+  { initialValue: [] }
+);
+    
+  // wards = input<WardSimpleMap[]>([]);
 
   /* WARDS POSITIONS RELATED STUFF 
   * OLD (DOTAMAPCOMPONENT)

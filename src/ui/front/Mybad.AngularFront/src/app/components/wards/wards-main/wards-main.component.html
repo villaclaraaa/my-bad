@@ -23,7 +23,7 @@
           <img src="{{avatarUrl}}" alt="Player avatar" class="h-6 w-6 rounded-full object-cover" />
         </div>
         <div class="whitespace-nowrap">
-          <span class="font-semibold">Account:</span>
+          <span class="font-semibold">Account: </span>
           <span>{{ accountName || 'None' }}</span>
         </div>
       </div>
@@ -46,10 +46,10 @@
 
   <ng-container [ngSwitch]="activeTab()">
     <div *ngSwitchCase="'map'" class="w-full">
-      <app-wardmap [wards]="wardsForCurrentTab()" *ngIf="!isLoading()"></app-wardmap>
+      <app-wardmap [accountId]="accountId()!" (isLoading)="isLoading.set($event)"></app-wardmap>
     </div>
     <div *ngSwitchCase="'efficiency'">
-      <app-efficiencymap [wards]="wardsForCurrentTab()" *ngIf="!isLoading()"></app-efficiencymap>
+      <app-efficiencymap [accountId]="accountId()!" (isLoading)="isLoading.set($event)"></app-efficiencymap>
     </div>
     <div *ngSwitchCase="'none'">
       <p class="text-center p-10 m-10">Enter steam account id in input field to do scanning.</p>

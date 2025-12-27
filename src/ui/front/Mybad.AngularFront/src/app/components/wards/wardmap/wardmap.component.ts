@@ -1,7 +1,10 @@
-import { Component, computed, effect, HostListener, input, Input, signal } from '@angular/core';
+import { Component, computed, effect, HostListener, inject, input, Input, OnInit, output, signal } from '@angular/core';
 import { NgFor, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'
 import { WardSimpleMap } from '../../../models/wardsModels';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { WardsService } from '../../../services/wards.service';
+import { filter, map, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'app-wardmap',
@@ -10,10 +13,32 @@ import { WardSimpleMap } from '../../../models/wardsModels';
   templateUrl: './wardmap.component.html',
   styleUrl: './wardmap.component.css'
 })
-export class WardmapComponent {
+export class WardmapComponent implements OnInit {
+  isLoading = output<boolean>();
+  isLoadingpage: boolean = true;
+  ngOnInit(): void {
+        this.isLoading.emit(this.isLoadingpage);
+  }
 
-  wards = input<WardSimpleMap[]>([]);
+  // wards = input<WardSimpleMap[]>([]);
 
+  accountId = input<number>(136996088);
+    private wardsService = inject(WardsService);
+  
+    matchIds: number[] = [1, 2, 3];
+  
+    wards = toSignal(
+    toObservable(this.accountId).pipe(
+      filter((id): id is number => id !== null),
+      switchMap(id =>
+        this.wardsService.getWardMapCached(id).pipe(
+          map(res => res.observerWards),
+          tap(() => {this.isLoadingpage = false; this.isLoading.emit(this.isLoadingpage)})
+        )
+      )
+    ),
+    { initialValue: [] }
+  );
 
   /* WARDS POSITIONS STUFF
   * OLD (DOTAMAPCOMPONENT)

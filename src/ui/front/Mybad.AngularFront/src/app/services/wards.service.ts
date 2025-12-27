@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { WardsEffApiResponse, WardsMapApiResponse } from '../models/wardsModels';
 
 @Injectable({
@@ -38,5 +38,31 @@ export class WardsService {
     return this.http.get<WardsEffApiResponse>(url, {
       headers: this.defaultHeaders
     });
+  }
+
+  private efficiencyCache = new Map<number, Observable<WardsEffApiResponse>>();
+
+  getWardsEfficiencyCached(accountId: number): Observable<WardsEffApiResponse> {
+    if (!this.efficiencyCache.has(accountId)) {
+      const request$ = this.getWardsEfficiency(accountId)
+        .pipe(shareReplay(1));
+
+      this.efficiencyCache.set(accountId, request$);
+    }
+
+    return this.efficiencyCache.get(accountId)!;
+  }
+
+  private wardmapCache = new Map<number, Observable<WardsMapApiResponse>>();
+
+  getWardMapCached(accountId: number): Observable<WardsMapApiResponse> {
+    if (!this.wardmapCache.has(accountId)) {
+      const request$ = this.getWardsMap(accountId)
+        .pipe(shareReplay(1));
+
+      this.wardmapCache.set(accountId, request$);
+    }
+
+    return this.wardmapCache.get(accountId)!;
   }
 }
