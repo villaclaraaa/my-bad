@@ -17,29 +17,34 @@ export class WardmapComponent implements OnInit {
   isLoading = output<boolean>();
   isLoadingpage: boolean = true;
   ngOnInit(): void {
-        this.isLoading.emit(this.isLoadingpage);
+    this.isLoading.emit(this.isLoadingpage);
   }
 
   // wards = input<WardSimpleMap[]>([]);
 
   accountId = input<number>(136996088);
-    private wardsService = inject(WardsService);
-  
-    matchIds: number[] = [1, 2, 3];
-  
-    wards = toSignal(
+  private wardsService = inject(WardsService);
+
+  matchIds: number[] = [1, 2, 3];
+
+  apiResponse = toSignal(
     toObservable(this.accountId).pipe(
       filter((id): id is number => id !== null),
       switchMap(id =>
         this.wardsService.getWardMapCached(id).pipe(
-          map(res => res.observerWards),
-          tap(() => {this.isLoadingpage = false; this.isLoading.emit(this.isLoadingpage)})
+          map(res => res),
+          tap(() => { this.isLoadingpage = false; this.isLoading.emit(this.isLoadingpage) })
         )
       )
     ),
-    { initialValue: [] }
+    { initialValue: null }
   );
 
+
+  wardsList = computed(() => {
+  const wards = this.apiResponse()?.observerWards ?? [];
+  return [...wards].sort((a, b) => b.amount - a.amount);
+});
   /* WARDS POSITIONS STUFF
   * OLD (DOTAMAPCOMPONENT)
   */
@@ -119,7 +124,7 @@ export class WardmapComponent implements OnInit {
   scaledWards = computed(() => {
     const iw = this.imageWidth();   // reactive
     const ih = this.imageHeight();  // reactive
-    return this.wards().map(w => {
+    return this.wardsList().map(w => {
       // scale X/Y first
       const baseX = ((w.x - this.minCoord) / this.coordRange) * this.mapSize;
       const baseY = this.mapSize - ((w.y - this.minCoordY) / this.coordRangeY) * this.mapSize;
@@ -141,7 +146,7 @@ export class WardmapComponent implements OnInit {
 
       case amount < 4:
         return `${this.heatmapOverlay[2]} z-15`
-      
+
       case amount < 5:
         return `${this.heatmapOverlay[3]} z-20`
 

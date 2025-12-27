@@ -38,17 +38,17 @@ export class EfficiencymapComponent implements OnInit {
 
   isLoading = output<boolean>();
 
-  wards = toSignal(
+  apiResponse = toSignal(
   toObservable(this.accountId).pipe(
     filter((id): id is number => id !== null),
     switchMap(id =>
       this.wardsService.getWardsEfficiencyCached(id).pipe(
-        map(res => res.observerWards),
+        map(res => res),
         tap(() => {this.isLoadingpage = false; this.isLoading.emit(this.isLoadingpage)})
       )
     )
   ),
-  { initialValue: [] }
+  { initialValue: null }
 );
     
   // wards = input<WardSimpleMap[]>([]);
@@ -88,8 +88,6 @@ export class EfficiencymapComponent implements OnInit {
   // DOM REFERENCE
   // -----------------------------
   private mapImageElement?: HTMLImageElement;
-
-  ngAfterViewInit(): void { }
 
   // -----------------------------
   // IMAGE LOAD + RESIZE
@@ -134,7 +132,7 @@ export class EfficiencymapComponent implements OnInit {
     const ih = this.imageHeight();  // reactive
     const size = this.circleSize();
 
-    return this.wards().map(w => {
+    return this.apiResponse()?.observerWards.map(w => {
       // scale X/Y first
       const baseX = ((w.x - this.minCoord) / this.coordRange) * this.mapSize;
       const baseY = this.mapSize - ((w.y - this.minCoordY) / this.coordRangeY) * this.mapSize;

@@ -20,15 +20,25 @@
   <div class="w-full md:w-3/5 flex flex-col gap-6 text-white overflow-y-auto lg:max-h-[75vh]">
 
     <div class="bg-slate-800 rounded-xl shadow px-4 pt-4">
-      <h2 class="text-lg font-semibold mb-3">Most used wards</h2>
+  <h2 class="text-lg font-semibold mb-3">Most used wards</h2>
 
-      <ul class="space-y-2">
-        <li *ngFor="let w of wards()" class="flex justify-between bg-slate-600 p-2 rounded-lg">
-          <span>Ward {{ w.x }}</span>
-          <span class="font-semibold">{{ w.y }}</span>
-        </li>
-      </ul>
+  <!-- Header -->
+  <div class="grid grid-cols-2 gap-2 text-sm font-semibold text-slate-300 border-b border-slate-600 pb-2 mb-2">
+    <span>Ward</span>
+    <span class="text-right">Amount</span>
+  </div>
+
+  <!-- Rows -->
+  <div class="space-y-1">
+    <div
+      *ngFor="let w of wardsList()"
+      class="grid grid-cols-2 gap-2 bg-slate-600 px-3 py-2 rounded-lg"
+    >
+      <span>Ward [{{ w.x }}, {{ w.y }}]</span>
+      <span class="text-right font-semibold">{{ w.amount }}</span>
     </div>
+  </div>
+</div>
 
   </div>
 

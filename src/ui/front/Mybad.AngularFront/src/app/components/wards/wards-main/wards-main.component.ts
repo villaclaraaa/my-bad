@@ -34,9 +34,9 @@ export class WardsMainComponent {
   };
 
   avatarUrl: string = '';
-  accountName: number | string = 'None';
+  accountName = signal<string | null>(null);
   searchQuery: string = '';
-
+  accountLinkODota: string = "https://www.opendota.com/players/";
   accountId = signal<number | null>(null);
 
   apiErrors = signal<string[]>([]);
@@ -45,7 +45,7 @@ export class WardsMainComponent {
     const accountId1 = Number(this.searchQuery);
 
     if (Number.isNaN(accountId1)) {
-      this.accountName = 'not found';
+      this.accountName.set('account not found');
       this.avatarUrl = '';
       return;
     }
@@ -58,28 +58,32 @@ export class WardsMainComponent {
           this.apiErrors.set(data.errors);
           this.isLoading.set(false);
           this.activeTab.set('none');
-          this.accountName = 'not found';
+                this.accountName.set('account not found');
+
           this.avatarUrl = '';
           return;
         }
         if (!data.playerInfo) {
-          this.accountName = 'not found';
+                this.accountName.set('account not found');
+
           this.avatarUrl = '';
           this.isLoading.set(false);
           this.activeTab.set('none');
+                    this.apiErrors.set(['api did not respond.']);
           return;
         }
 
         this.apiErrors.set([]);
-        this.accountName = data.playerInfo.personaName;
+        this.accountName.set(data.playerInfo.personaName);
         this.avatarUrl = data.playerInfo.avatarMediumUrl;
-
         this.activeTab.set('map');
         this.accountId.set(accountId1);
+        this.accountLinkODota += `${this.accountId()}`;
         this.isLoading.set(false);
       },
       error: () => {
-        this.accountName = 'not found';
+              this.accountName.set('account not found');
+
         this.avatarUrl = '';
         this.isLoading.set(false);
       }

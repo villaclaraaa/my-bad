@@ -22,9 +22,9 @@
         <div *ngIf="avatarUrl">
           <img src="{{avatarUrl}}" alt="Player avatar" class="h-6 w-6 rounded-full object-cover" />
         </div>
-        <div class="whitespace-nowrap">
-          <span class="font-semibold">Account: </span>
-          <span>{{ accountName || 'None' }}</span>
+        <div class="whitespace-nowrap" *ngIf="accountName()">
+          <span class="font-semibold">{{ accountName() || '' }}</span>
+          <span class="small"><a href={{accountLinkODota}} title="Open OpenDota profile." target="_blank"> ODota</a></span>
         </div>
       </div>
 
