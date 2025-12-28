@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
+using Mybad.Core.Services;
 
 namespace Mybad.API.Endpoints;
 
@@ -17,7 +18,23 @@ public static class WardEndpoints
 		// Define ward-related endpoints here
 		group.MapGet("map", GetWardsPlacementMap);
 		group.MapGet("efficiency", GetWardsEfficiency);
+		group.MapDelete("efficiency/match", DeleteMatchFromEfficiency);
 		return group;
+	}
+
+	private static async Task<IResult> DeleteMatchFromEfficiency(
+		[FromQuery] long matchId, [FromQuery] long accountId,
+		IParsedMatchWardInfoService matchesService, IWardService wardsService)
+	{
+		if (accountId <= 0 || matchId <= 0)
+		{
+			return TypedResults.BadRequest("Account id or match id must be a positive number.");
+		}
+
+		await wardsService.DeleteAllFromMatchAsync(matchId);
+		await matchesService.RemoveAsync(matchId, accountId);
+
+		return TypedResults.NoContent();
 	}
 
 	private static async Task<IResult> GetWardsEfficiency(

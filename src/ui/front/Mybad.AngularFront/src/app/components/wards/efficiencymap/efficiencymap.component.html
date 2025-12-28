@@ -1,55 +1,47 @@
-<div class="flex flex-col md:flex-row w-full h-full p-4 gap-4">
+<div class="flex flex-col md:flex-row w-full h-full p-4 gap-4 items-start">
 
   <div class="w-full md:w-2/5 flex justify-center">
-     <div class="relative inline-block w-full max-w-[600px] aspect-square border rounded-xl overflow-hidden shadow">
+    <div class="relative inline-block w-full max-w-[600px] aspect-square border rounded-xl overflow-hidden shadow">
 
       <!-- Map Image -->
       <img #mapImg class="absolute inset-0 w-full h-full object-cover" src="assets/img/detailed_738.jpg"
         (load)="onImageLoad(mapImg)" />
 
-      <div *ngFor="let w of scaledWards()" 
-      class="absolute" [style.left.px]="w.left" [style.top.px]="w.top">
-        <div class="relative flex items-center justify-center rounded-full" 
-        [style.width.px]="w.size"
-          [style.height.px]="w.size" 
-          style="transform: translate(-50%, -50%)"
+      <div *ngFor="let w of scaledWards()" class="absolute" [style.left.px]="w.left" [style.top.px]="w.top">
+        <div class="relative flex items-center justify-center rounded-full" [style.width.px]="w.size"
+          [style.height.px]="w.size" style="transform: translate(-50%, -50%)"
           (click)="$event.stopPropagation(); toggleWard(w, $event)">
           <div class="absolute inset-0 rounded-full border-2 opacity-80  hover:scale-105 hover:cursor-pointer
-            transition-transform duration-200"
-          [ngClass]="getEfficiencyClasses(w.efficiencyScore)"></div>
+            transition-transform duration-200" [ngClass]="getEfficiencyClasses(w.efficiencyScore)"></div>
           <img src="assets/img/obs.png" class="relative z-10 w-4 h-3 pointer-events-none" />
         </div>
 
       </div>
-      
+
       <!-- Tooltip -->
-      <div
-  *ngIf="activeWard() && tooltipPos()"
-  class="fixed z-[9999] w-40
+      <div *ngIf="activeWard() && tooltipPos()" class="fixed z-[9999] w-40
          rounded-lg bg-slate-900 text-white text-xs
-         shadow-lg border border-slate-700 px-3 py-2"
-  [style.left.px]="tooltipPos()!.x + 12"
-  [style.top.px]="tooltipPos()!.y + 12"
->
-  <div class="font-semibold mb-1">
-    Ward [{{ activeWard()!.x }}, {{ activeWard()!.y }}]
-  </div>
+         shadow-lg border border-slate-700 px-3 py-2" [style.left.px]="tooltipPos()!.x + 12"
+        [style.top.px]="tooltipPos()!.y + 12">
+        <div class="font-semibold mb-1">
+          Ward [{{ activeWard()!.x }}, {{ activeWard()!.y }}]
+        </div>
 
-  <div class="flex justify-between">
-    <span>Efficiency</span>
-    <span>{{ activeWard()!.efficiencyScore}}</span>
-  </div>
+        <div class="flex justify-between">
+          <span>Efficiency</span>
+          <span>{{ activeWard()!.efficiencyScore}}</span>
+        </div>
 
-  <div class="flex justify-between">
-    <span>Avg lived</span>
-    <span>{{ activeWard()!.averageTimeLived }}s</span>
-  </div>
+        <div class="flex justify-between">
+          <span>Avg lived</span>
+          <span>{{ activeWard()!.averageTimeLived }}s</span>
+        </div>
 
-  <div class="flex justify-between">
-    <span>Amount</span>
-    <span class="font-semibold">{{ activeWard()!.amount }}</span>
-  </div>
-</div>
+        <div class="flex justify-between">
+          <span>Amount</span>
+          <span class="font-semibold">{{ activeWard()!.amount }}</span>
+        </div>
+      </div>
 
 
       <!-- OLD RED SIMPLE DOTS -->
@@ -68,68 +60,53 @@
   </div>
 
   <!-- LIST -->
-  <div class="w-full md:w-3/5 items-start gap-6 text-white overflow-y-auto lg:max-h-[75vh]">
-  <div class="">
-        <p class="text-muted mx-auto align-self-center">Only parsed matches from latest 20 (and already added here) in OpenDota are counted in this list.<br/> 
-        Please parse more matches in OpenDota if you want them to be included.</p>
-      </div>
-    <!-- Wards -->
-
-    <!-- <div class="w-full md:w-2/5 bg-slate-800 rounded-xl shadow p-4">
-  <h2 class="text-lg font-semibold mb-3">Most used wards</h2>
-
-  <div
-    class="grid grid-cols-[2fr_1fr_1fr_1fr] gap-2 text-sm font-semibold
-           text-slate-300 border-b border-slate-600 pb-2 mb-2 lg:max-h-[75vh]"
-  >
-    <span>Ward</span>
-    <span class="text-right">Efficiency</span>
-    <span class="text-right">Avg Time Lived</span>
-    <span class="text-right">Amount</span>
-  </div>
-
-  <div class="space-y-1">
-    <div
-      *ngFor="let w of wardsList()"
-      (mouseenter)="hoveredWard.set(w)"
-      (mouseleave)="hoveredWard.set(null)"
-      class="grid grid-cols-[2fr_1fr_1fr_1fr] gap-2
-             bg-slate-600 px-3 py-2 rounded-lg
-             hover:bg-slate-500 transition cursor-pointer"
-    >
-      <span>Ward [{{ w.x }}, {{ w.y }}]</span>
-
-      <span class="text-right">
-        {{ w.efficiencyScore| number:'1.0-2' }}
-      </span>
-
-      <span class="text-right">
-        {{ w.averageTimeLived }}s
-      </span>
-
-      <span class="text-right font-semibold">
-        {{ w.amount }}
-      </span>
-    </div>
-  </div>
-</div> -->
+  <div class="w-full md:w-3/5 flex flex-col gap-6 text-white overflow-y-auto lg:max-h-[75vh]">
+    <div class="">
+      <span class="small block text-center text-gray-400">Only parsed matches from latest 20 (and already added here) in
+        OpenDota are counted in this list.<br />
+        Please parse more matches in OpenDota if you want them to be included.</span>
     <!-- Match IDs list -->
     <div class="w-full bg-slate-800 rounded-xl shadow p-4">
-      
-      <h2 class="text-lg font-semibold mb-3 text-white">Match IDs</h2>
+
+      <h2 class="text-lg font-semibold mb-3 text-white">Parsed matches IDs</h2>
       <ul class="space-y-2">
         <li *ngFor="let id of matchIds()" class="flex items-center justify-between bg-slate-600 p-2 rounded-lg">
-          <span class="text-white">{{ id }}</span>
-          <button (click)="removeMatchId(id)" class="text-red-600 font-semibold">Delete</button>
+          <a class="flex items-center" href="https://www.opendota.com/matches/{{id}}" target="_blank"
+            title="open match details in OpenDota website.">
+            <span class="text-white inline-block">
+              {{ id }}
+            </span>
+            <svg viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg" class="size-5" stroke="#ffffff">
+              <g id="SVGRepo_iconCarrier">
+                <path d="M16.3891 8.11096L8.61091 15.8891" stroke="#ffffff" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"></path>
+                <path d="M16.3891 8.11096L16.7426 12" stroke="#ffffff" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"></path>
+                <path d="M16.3891 8.11096L12.5 7.75741" stroke="#ffffff" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round"></path>
+              </g>
+            </svg>
+          </a>
+          <button (click)="removeMatchId(id)" title="Remove match from scanned." class="text-red-600 font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0,0,256,256">
+              <g fill="#ea6060" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt"
+                stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0"
+                font-family="none" font-weight="none" font-size="none" text-anchor="none"
+                style="mix-blend-mode: normal">
+                <g transform="scale(10.66667,10.66667)">
+                  <path
+                    d="M10,2l-1,1h-6v2h1.10938l1.7832,15.25586v0.00781c0.13102,0.98666 0.98774,1.73633 1.98242,1.73633h8.24805c0.99468,0 1.8514,-0.74968 1.98242,-1.73633l0.00195,-0.00781l1.7832,-15.25586h1.10938v-2h-6l-1,-1zM6.125,5h11.75l-1.75195,15h-8.24805z">
+                  </path>
+                </g>
+              </g>
+            </svg>
+          </button>
         </li>
       </ul>
-
-      <!-- Add Match ID -->
-      <div class="mt-4 flex items-center gap-2">
-        <input type="text" [(ngModel)]="newMatchId" placeholder="Add match ID" class="flex-1 border rounded-lg p-2" />
-        <button (click)="addMatchId()" class="bg-blue-600 text-white px-3 py-2 rounded-lg">Add</button>
-      </div>
+    </div>
     </div>
 
   </div>
+  <app-error [errorMessages]="apiErrors()"></app-error>
+
 </div>

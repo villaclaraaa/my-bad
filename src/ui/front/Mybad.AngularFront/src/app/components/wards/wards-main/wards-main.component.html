@@ -49,10 +49,10 @@
       <app-wardmap [accountId]="accountId()!" (isLoading)="isLoading.set($event)"></app-wardmap>
     </div>
     <div *ngSwitchCase="'efficiency'">
-      <app-efficiencymap [accountId]="accountId()!" (isLoading)="isLoading.set($event)"></app-efficiencymap>
+      <app-efficiencymap [accountId]="accountId()!" (isLoadingOutput)="isLoading.set($event)"></app-efficiencymap>
     </div>
     <div *ngSwitchCase="'none'">
-      <p class="text-center p-10 m-10">Enter steam account id in input field to do scanning.</p>
+      <p class="text-center p-10 m-10">Enter steam account id to perform scanning.</p>
     </div>
   </ng-container>
 

@@ -65,4 +65,11 @@ export class WardsService {
 
     return this.wardmapCache.get(accountId)!;
   }
+
+  removeMatchIdFromParsedMatchesEfficiency(matchId: number, accountId: number) : Observable<any> {
+    const url = `${this.basePath}/efficiency/match?matchId=${matchId}&accountId=${accountId}`;
+    return this.http.delete(url, {
+      headers: this.defaultHeaders
+    });
+  }
 }

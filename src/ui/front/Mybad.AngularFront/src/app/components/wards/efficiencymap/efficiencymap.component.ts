@@ -4,32 +4,46 @@ import { FormsModule } from '@angular/forms'
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, shareReplay, switchMap, tap } from 'rxjs';
 import { WardsService } from '../../../services/wards.service';
-import { WardSimpleEfficiency, WardSimpleMap } from '../../../models/wardsModels';
-
+import { WardSimpleEfficiency } from '../../../models/wardsModels';
+import { ErrorComponent } from '../../../overlay/error/error.component';
 
 @Component({
   selector: 'app-efficiencymap',
   standalone: true,
-  imports: [NgFor, CommonModule, FormsModule],
+  imports: [NgFor, CommonModule, FormsModule, ErrorComponent],
   templateUrl: './efficiencymap.component.html',
   styleUrl: './efficiencymap.component.css'
 })
 export class EfficiencymapComponent implements OnInit {
   ngOnInit(): void {
-        this.isLoading.emit(this.isLoadingpage);
+        this.isLoadingOutput.emit(this.isLoadingpage);
   }
   newMatchId: string = '';
   sortedWards: { id: number, efficiency: number }[] = [
     { id: 1, efficiency: 100 },
     { id: 2, efficiency: 90 },
   ]
-  addMatchId() {
-    throw new Error('Method not implemented.');
-  }
-  removeMatchId(_t15: number) {
-    throw new Error('Method not implemented.');
+  apiErrors = signal<string[]>([]);
+  
+
+  removeMatchId(matchId: number) {
+    this.isLoadingOutput.emit(true); 
+    this.wardsService.removeMatchIdFromParsedMatchesEfficiency(matchId, this.accountId())
+    .subscribe({
+      next: (res) => {
+        console.log('Match removed:', res);
+      },
+      error: (err) => {
+        console.error('Failed to remove match:', err);
+        this.apiErrors.set(['Failed to remove match:', err]);
+      }
+    });
+    this.toRefreshApiResponse.set(true);
   }
 
+  private toRefreshApiResponse = signal(false); // a counter to trigger refresh
+
+  
   accountId = input<number>(136996088);
   private wardsService = inject(WardsService);
 
@@ -37,7 +51,7 @@ export class EfficiencymapComponent implements OnInit {
 
   private isLoadingpage: boolean = true;
 
-  isLoading = output<boolean>();
+  isLoadingOutput = output<boolean>();
 
   apiResponse = toSignal(
   toObservable(this.accountId).pipe(
@@ -45,7 +59,9 @@ export class EfficiencymapComponent implements OnInit {
     switchMap(id =>
       this.wardsService.getWardsEfficiencyCached(id).pipe(
         map(res => res),
-        tap(() => {this.isLoadingpage = false; this.isLoading.emit(this.isLoadingpage)})
+        tap(() => {
+          this.isLoadingOutput.emit(false); 
+        })
       )
     )
   ),
@@ -65,20 +81,18 @@ isHovered(w: WardSimpleEfficiency) {
   return hovered?.x === w.x && hovered?.y === w.y;
 }
 
-
-  private colors = [
-  'border-blue-500 bg-blue-500/40',    // 0.0–0.1
-  'border-sky-500 bg-sky-500/40',      // 0.1–0.2
-  'border-cyan-400 bg-cyan-400/40',    // 0.2–0.3
-  'border-teal-400 bg-teal-400/40',    // 0.3–0.4
-  'border-emerald-400 bg-emerald-400/40', // 0.4–0.5
-  'border-emerald-500 bg-emerald-500/40', // 0.5–0.6
-  'border-green-500 bg-green-500/40',  // 0.6–0.7
-  'border-lime-500 bg-lime-500/40',    // 0.7–0.8
-  'border-lime-400 bg-lime-400/50',    // 0.8–0.9
-  'border-lime-300 bg-lime-300/60'     // 0.9–1.0
+private colors = [
+  "bg-red-500/50 border border-red-500",    
+  "bg-red-400/50 border border-red-400",    
+  "bg-orange-500/50 border border-orange-500", 
+  "bg-orange-400/50 border border-orange-400", 
+  "bg-amber-500/50 border border-amber-500",  
+  "bg-amber-400/50 border border-amber-400",  
+  "bg-lime-500/50 border border-lime-500",   
+  "bg-lime-400/50 border border-lime-400",   
+  "bg-green-500/50 border border-green-500",  
+  "bg-green-400/50 border border-green-400",  
 ];
-
 
  getEfficiencyClasses(efficiency: number): string {
   const step = Math.min(9, Math.floor(efficiency * 10));

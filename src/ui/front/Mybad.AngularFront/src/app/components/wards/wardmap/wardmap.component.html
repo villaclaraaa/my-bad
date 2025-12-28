@@ -9,8 +9,8 @@
         (load)="onImageLoad(mapImg)" />
 
       <!-- Red Dots -->
-      <div *ngFor="let w of scaledWards()" class="absolute w-3 h-3 rounded-full"
-        [style.left.px]="w.left" [style.top.px]="w.top" [ngClass]="[getDotClassForHeatMap(w.amount),
+      <div *ngFor="let w of scaledWards()" class="absolute w-3 h-3 rounded-full" [style.left.px]="w.left"
+        [style.top.px]="w.top" [ngClass]="[getDotClassForHeatMap(w.amount),
         isHovered(w) ? 'ring-4 ring-yellow-400 scale-125 z-50' : '']">
       </div>
 
@@ -20,29 +20,27 @@
   <!-- LIST (3/5 on desktop) -->
   <div class="w-full md:w-3/5 flex flex-col gap-6 text-white overflow-y-auto lg:max-h-[75vh]">
 
-    <div class="bg-slate-800 rounded-xl shadow px-4 pt-4">
-  <h2 class="text-lg font-semibold mb-3">Most used wards</h2>
+    <div class="bg-slate-800 rounded-xl shadow px-4 py-4">
+      <h2 class="text-lg font-semibold mb-3">Most used wards</h2>
 
-  <!-- Header -->
-  <div class="grid grid-cols-2 gap-2 text-sm font-semibold text-slate-300 border-b border-slate-600 pb-2 mb-2">
-    <span>Ward</span>
-    <span class="text-right">Amount</span>
-  </div>
+      <!-- Header -->
+      <div class="grid grid-cols-2 gap-2 text-sm font-semibold text-slate-300 border-b border-slate-600 pb-2 mb-2">
+        <span>Ward</span>
+        <span class="text-right">Amount</span>
+      </div>
 
-  <!-- Rows -->
-  <div class="space-y-1">
-    <div
-      *ngFor="let w of wardsList()"
-      (mouseenter)="hoveredWard.set(w)"
-  (mouseleave)="hoveredWard.set(null)"
-      class="grid grid-cols-2 gap-2 bg-slate-600 px-3 py-2 rounded-lg"
-    >
-      <span>Ward [{{ w.x }}, {{ w.y }}]</span>
-      <span class="text-right font-semibold">{{ w.amount }}</span>
+      <!-- Rows -->
+      <div class="space-y-1">
+        <div *ngFor="let w of wardsList()" (mouseenter)="hoveredWard.set(w)" (mouseleave)="hoveredWard.set(null)"
+          class="grid grid-cols-2 gap-2 bg-slate-600 px-3 py-2 rounded-lg">
+          <span>Ward [{{ w.x }}, {{ w.y }}]</span>
+          <span class="text-right font-semibold">{{ w.amount }}</span>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
   </div>
+
+    <app-error [errorMessages]="apiErrors()"></app-error>
 
 </div>

@@ -1,15 +1,16 @@
-import { Component, computed, effect, HostListener, inject, input, Input, OnInit, output, signal } from '@angular/core';
+import { Component, computed, effect, HostListener, importProvidersFrom, inject, input, Input, OnInit, output, signal } from '@angular/core';
 import { NgFor, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'
 import { WardSimpleMap } from '../../../models/wardsModels';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { WardsService } from '../../../services/wards.service';
 import { filter, map, switchMap, tap } from 'rxjs';
+import { ErrorComponent } from '../../../overlay/error/error.component';
 
 @Component({
   selector: 'app-wardmap',
   standalone: true,
-  imports: [NgFor, CommonModule, FormsModule],
+  imports: [NgFor, CommonModule, FormsModule, ErrorComponent],
   templateUrl: './wardmap.component.html',
   styleUrl: './wardmap.component.css'
 })
@@ -40,10 +41,10 @@ export class WardmapComponent implements OnInit {
     { initialValue: null }
   );
 
-
+apiErrors = signal<string[]>([]);
   wardsList = computed(() => {
   const wards = this.apiResponse()?.observerWards ?? [];
-  return [...wards].sort((a, b) => b.amount - a.amount);
+  return [...wards].sort((a, b) => b.amount - a.amount).slice(0, 10);
 });
 
 hoveredWard = signal<WardSimpleMap | null>(null);
@@ -132,7 +133,7 @@ isHovered(w: WardSimpleMap) {
   scaledWards = computed(() => {
     const iw = this.imageWidth();   // reactive
     const ih = this.imageHeight();  // reactive
-    return this.wardsList().map(w => {
+    return this.apiResponse()?.observerWards.map(w => {
       // scale X/Y first
       const baseX = ((w.x - this.minCoord) / this.coordRange) * this.mapSize;
       const baseY = this.mapSize - ((w.y - this.minCoordY) / this.coordRangeY) * this.mapSize;
