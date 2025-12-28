@@ -42,8 +42,8 @@ export class WardsService {
 
   private efficiencyCache = new Map<number, Observable<WardsEffApiResponse>>();
 
-  getWardsEfficiencyCached(accountId: number): Observable<WardsEffApiResponse> {
-    if (!this.efficiencyCache.has(accountId)) {
+  getWardsEfficiencyCached(accountId: number, forceRefresh = false): Observable<WardsEffApiResponse> {
+    if (!this.efficiencyCache.has(accountId) || forceRefresh) {
       const request$ = this.getWardsEfficiency(accountId)
         .pipe(shareReplay(1));
 

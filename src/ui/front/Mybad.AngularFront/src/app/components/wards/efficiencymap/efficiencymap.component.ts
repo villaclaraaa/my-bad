@@ -2,7 +2,7 @@ import { Component, computed, HostListener, inject, input, Input, OnInit, output
 import { NgFor, NgStyle, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { filter, map, shareReplay, switchMap, tap } from 'rxjs';
+import { combineLatest, filter, map, shareReplay, startWith, Subject, switchMap, tap } from 'rxjs';
 import { WardsService } from '../../../services/wards.service';
 import { WardSimpleEfficiency } from '../../../models/wardsModels';
 import { ErrorComponent } from '../../../overlay/error/error.component';
@@ -24,7 +24,8 @@ export class EfficiencymapComponent implements OnInit {
     { id: 2, efficiency: 90 },
   ]
   apiErrors = signal<string[]>([]);
-  
+  private refresh$ = new Subject<void>();
+
 
   removeMatchId(matchId: number) {
     this.isLoadingOutput.emit(true); 
@@ -32,19 +33,18 @@ export class EfficiencymapComponent implements OnInit {
     .subscribe({
       next: (res) => {
         console.log('Match removed:', res);
+        this.refresh$.next();
       },
       error: (err) => {
         console.error('Failed to remove match:', err);
         this.apiErrors.set(['Failed to remove match:', err]);
       }
     });
-    this.toRefreshApiResponse.set(true);
   }
 
-  private toRefreshApiResponse = signal(false); // a counter to trigger refresh
 
   
-  accountId = input<number>(136996088);
+  accountId = input<number>(0);
   private wardsService = inject(WardsService);
 
   matchIds = computed(() => this.apiResponse()?.includedMatches);
@@ -53,20 +53,42 @@ export class EfficiencymapComponent implements OnInit {
 
   isLoadingOutput = output<boolean>();
 
-  apiResponse = toSignal(
-  toObservable(this.accountId).pipe(
-    filter((id): id is number => id !== null),
-    switchMap(id =>
-      this.wardsService.getWardsEfficiencyCached(id).pipe(
-        map(res => res),
-        tap(() => {
-          this.isLoadingOutput.emit(false); 
-        })
+//   apiResponse = toSignal(
+//   toObservable(this.accountId).pipe(
+//     filter((id): id is number => id !== null),
+//     switchMap(id =>
+//       this.wardsService.getWardsEfficiencyCached(id).pipe(
+//         map(res => res),
+//         tap(() => {
+//           this.isLoadingOutput.emit(false); 
+//         })
+//       )
+//     )
+//   ),
+//   { initialValue: null }
+// );
+
+apiResponse = toSignal(
+  combineLatest([
+    toObservable(this.accountId).pipe(
+      filter((id): id is number => id !== null)
+    ),
+    this.refresh$.pipe(
+      map(() => true),          // refresh click
+      startWith(false)          // initial load
+    )
+  ]).pipe(
+    tap(() => this.isLoadingOutput.emit(true)),
+    switchMap(([id, forceRefresh]) =>
+      this.wardsService.getWardsEfficiencyCached(id, forceRefresh).pipe(
+        tap(() => this.isLoadingOutput.emit(false))
       )
     )
   ),
   { initialValue: null }
 );
+
+
   
 wardsList = computed(() => {
   const wards = this.apiResponse()?.observerWards ?? [];
