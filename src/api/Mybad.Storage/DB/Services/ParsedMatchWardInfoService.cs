@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Mybad.Core.DomainModels;
 using Mybad.Core.Services;
 using Mybad.Storage.DB.Entities;
 
@@ -17,25 +18,29 @@ public class ParsedMatchWardInfoService : IParsedMatchWardInfoService
 	}
 
 	/// <inheritdoc />
-	public async Task AddAsync(long matchId, long accountId, DateTime playedAtDateUtc)
+	public async Task AddAsync(ParsedMatchWardInfoModel model)
 	{
 		await _dbContext.ParsedMatchWardInfos.AddAsync(new ParsedMatchWardInfo
 		{
-			MatchId = matchId,
-			AccountId = accountId,
-			PlayedAtDateUtc = playedAtDateUtc
+			MatchId = model.MatchId,
+			AccountId = model.AccountId,
+			IsRadiantPlayer = model.IsRadiantPlayer,
+			IsWonMatch = model.IsWonMatch,
+			PlayedAtDateUtc = model.PlayedAtDateUtc
 		});
 		await _dbContext.SaveChangesAsync();
 	}
 
 	/// <inheritdoc />
-	public async Task AddRangeAsync(IEnumerable<(long matchId, long accountId, DateTime playedAtDateUtc)> list)
+	public async Task AddRangeAsync(IEnumerable<ParsedMatchWardInfoModel> list)
 	{
 		await _dbContext.AddRangeAsync(list.Select(x => new ParsedMatchWardInfo
 		{
-			MatchId = x.matchId,
-			AccountId = x.accountId,
-			PlayedAtDateUtc = x.playedAtDateUtc
+			MatchId = x.MatchId,
+			AccountId = x.AccountId,
+			IsRadiantPlayer = x.IsRadiantPlayer,
+			IsWonMatch = x.IsWonMatch,
+			PlayedAtDateUtc = x.PlayedAtDateUtc
 		}));
 		await _dbContext.SaveChangesAsync();
 	}

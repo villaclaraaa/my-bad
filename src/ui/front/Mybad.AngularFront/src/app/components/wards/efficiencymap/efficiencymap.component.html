@@ -61,6 +61,43 @@
 
   <!-- LIST -->
   <div class="w-full md:w-3/5 flex flex-col gap-6 text-white overflow-y-auto lg:max-h-[50vh]">
+
+    <!-- Side filter -->
+<div class="flex justify-center gap-6 my-4">
+  <label class="flex items-center gap-2 cursor-pointer">
+    <input
+      type="radio"
+      name="side"
+      value="all"
+      [checked]="selectedSide() === 'all'"
+      (change)="onSideChange('all')"
+    />
+    <span>All</span>
+  </label>
+
+  <label class="flex items-center gap-2 cursor-pointer">
+    <input
+      type="radio"
+      name="side"
+      value="radiant"
+      [checked]="selectedSide() === 'radiant'"
+      (change)="onSideChange('radiant')"
+    />
+    <span>Radiant</span>
+  </label>
+
+  <label class="flex items-center gap-2 cursor-pointer">
+    <input
+      type="radio"
+      name="side"
+      value="dire"
+      [checked]="selectedSide() === 'dire'"
+      (change)="onSideChange('dire')"
+    />
+    <span>Dire</span>
+  </label>
+</div>
+
     <div class="">
       <span class="small block text-center text-gray-400">Only parsed matches from latest 20 (and already added here) in
         OpenDota are counted in this list.<br />

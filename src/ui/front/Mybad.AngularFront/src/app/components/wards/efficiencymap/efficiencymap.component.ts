@@ -6,6 +6,7 @@ import { combineLatest, filter, map, shareReplay, startWith, Subject, switchMap,
 import { WardsService } from '../../../services/wards.service';
 import { WardSimpleEfficiency } from '../../../models/wardsModels';
 import { ErrorComponent } from '../../../overlay/error/error.component';
+type SideFilter = 'all' | 'radiant' | 'dire';
 
 @Component({
   selector: 'app-efficiencymap',
@@ -162,6 +163,13 @@ toggleWard(w: WardSimpleEfficiency, event: MouseEvent) {
 isActive(w: WardSimpleEfficiency) {
   const active = this.activeWard();
   return active?.x === w.x && active?.y === w.y;
+}
+
+
+selectedSide = signal<SideFilter>('all');
+
+onSideChange(side: SideFilter) {
+  this.selectedSide.set(side);
 }
 
 

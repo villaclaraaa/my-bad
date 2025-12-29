@@ -110,7 +110,7 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 		// some thread safe lists.
 		var obses = new ConcurrentBag<WardModel>();
 		var errors = new ConcurrentBag<string>();
-		var includedMatches = new ConcurrentBag<(long matchId, long accountId, DateTime date)>();
+		var includedMatches = new ConcurrentBag<ParsedMatchWardInfoModel>();
 		await Parallel.ForEachAsync(recentMatchesResponse, async (match, _) =>
 		{
 			var matchRequest = await http.GetAsync($"matches/{match.MatchId}");
@@ -134,11 +134,15 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 				obses.Add(o);
 			}
 
+			var playerInfo = matchDetailsResponse.Players.FirstOrDefault(x => x.AccountId == request.AccountId)
+				?? throw new InvalidOperationException();
+			var isPlayerRadiant = playerInfo.Slot < 128;
+			var didWin = isPlayerRadiant == matchDetailsResponse.IsRadiantWin;
 			// add wards per match into db and add matchId into parsed matches
-			includedMatches.Add((matchId: match.MatchId, accountId: request.AccountId, date: DateTimeOffset.FromUnixTimeSeconds(match.StartTimeSecondsEpoch).UtcDateTime));
+			includedMatches.Add(new ParsedMatchWardInfoModel(match.MatchId, request.AccountId, isRadiantPlayer: isPlayerRadiant, isWonMatch: didWin, DateTimeOffset.FromUnixTimeSeconds(match.StartTimeSecondsEpoch).UtcDateTime));
 		});
 
-		await _wardService.AddRangeAsync(obses.ToList());
+		await _wardService.AddRangeAsync([.. obses]);
 		await _matchService.AddRangeAsync(includedMatches.ToList());
 
 		// Finally get updated wards list from storage and compose response
