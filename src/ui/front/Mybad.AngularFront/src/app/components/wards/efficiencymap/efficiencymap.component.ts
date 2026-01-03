@@ -106,19 +106,13 @@ isHovered(w: WardSimpleEfficiency) {
 
 private colors = [
   "bg-red-500/50 border border-red-500",    
-  "bg-red-400/50 border border-red-400",    
   "bg-orange-500/50 border border-orange-500", 
-  "bg-orange-400/50 border border-orange-400", 
-  "bg-amber-500/50 border border-amber-500",  
-  "bg-amber-400/50 border border-amber-400",  
-  "bg-lime-500/50 border border-lime-500",   
-  "bg-lime-400/50 border border-lime-400",   
+  "bg-yellow-500/50 border border-lime-500",   
   "bg-green-500/50 border border-green-500",  
-  "bg-green-400/50 border border-green-400",  
 ];
 
  getEfficiencyClasses(efficiency: number): string {
-  const step = Math.min(9, Math.floor(efficiency * 10));
+  const step = Math.min(3, Math.floor(efficiency * 4));
   return this.colors[step];
 }
 

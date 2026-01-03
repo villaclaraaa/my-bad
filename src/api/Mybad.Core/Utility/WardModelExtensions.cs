@@ -6,37 +6,69 @@ public static class WardModelExtensions
 {
 	public static List<WardModel> GetApproximatedList(this List<WardModel> wards)
 	{
+		int deviation = 4;
 		wards.Sort();
-		var merged = new List<WardModel>(wards.Count);
+		var cellSize = deviation;
+		var grid = new Dictionary<(int, int), List<WardModel>>();
+		var result = new List<WardModel>();
 
-		int i = 0, deviation1 = 2;
-		while (i < wards.Count)
+		foreach (var item in wards)
 		{
-			// Start with current element
-			var current = wards[i];
+			int cellX = item.PosX / cellSize;
+			int cellY = item.PosY / cellSize;
 
-			int j = i + 1;
+			WardModel? mergedInto = null;
 
-			// Merge all consecutive items within deviation
-			while (j < wards.Count &&
-				   Math.Abs(current.PosX - wards[j].PosX) <= deviation1 &&
-				   Math.Abs(current.PosY - wards[j].PosY) <= deviation1)
+			// check this cell and neighbors
+			for (int dx = -1; dx <= 1 && mergedInto == null; dx++)
 			{
-				current.PosX = (current.PosX + wards[j].PosX) / 2;
-				current.PosY = (current.PosY + wards[j].PosY) / 2;
-				current.TimeLivedSeconds += wards[j].TimeLivedSeconds;
-				current.Amount += wards[j].Amount;
-				current.WasDestroyed = current.WasDestroyed || wards[j].WasDestroyed;
-				j++;
+				for (int dy = -1; dy <= 1 && mergedInto == null; dy++)
+				{
+					var key = (cellX + dx, cellY + dy);
+
+					if (!grid.TryGetValue(key, out var bucket))
+						continue;
+
+					foreach (var existing in bucket)
+					{
+						if (Math.Abs(existing.PosX - item.PosX) <= deviation &&
+							Math.Abs(existing.PosY - item.PosY) <= deviation)
+						{
+							int oldAmount = existing.Amount;
+							int newAmount = oldAmount + item.Amount;
+
+							// weighted average
+							existing.PosX = (existing.PosX * oldAmount + item.PosX * item.Amount) / newAmount;
+							existing.PosY = (existing.PosY * oldAmount + item.PosY * item.Amount) / newAmount;
+
+							existing.Amount = newAmount;
+							existing.TimeLivedSeconds += item.TimeLivedSeconds;
+							existing.WasDestroyed |= item.WasDestroyed;
+
+							mergedInto = existing;
+
+							break;
+						}
+					}
+				}
 			}
 
-			merged.Add(current);
+			if (mergedInto == null)
+			{
+				// new cluster
+				result.Add(item);
 
-			// Skip over the merged items
-			i = j;
+				var key = (cellX, cellY);
+				if (!grid.TryGetValue(key, out var bucket))
+				{
+					bucket = [];
+					grid[key] = bucket;
+				}
+
+				bucket.Add(item);
+			}
 		}
 
-		wards = merged;
-		return wards;
+		return result;
 	}
 }
