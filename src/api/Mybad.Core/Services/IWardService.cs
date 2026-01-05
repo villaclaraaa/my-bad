@@ -34,6 +34,14 @@ public interface IWardService
 	Task<IEnumerable<WardModel>> GetAllForAccountAsync(long accountId);
 
 	/// <summary>
+	/// Gets all wards for the account and if needed then only for specified team (radiant/dire).
+	/// </summary>
+	/// <param name="accountId">Account id to get info.</param>
+	/// <param name="isRadiant">True if want to get wards for radiant side, false if dire. If null then just ignore it and get all wards for both sides.</param>
+	/// <returns>Task contains list of <see cref="WardModel"/> as <see cref="IEnumerable{T}"/>.</returns>
+	Task<IEnumerable<WardModel>> GetAllBySideAndAccountAsync(long accountId, bool? isRadiant);
+
+	/// <summary>
 	/// Deletes the wards for a specific account.
 	/// </summary>
 	/// <param name="accountId">Account id of user.</param>

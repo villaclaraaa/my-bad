@@ -46,5 +46,5 @@ public interface IParsedMatchWardInfoService
 	/// <param name="accountId">Account id.</param>
 	/// <returns>Task representing asynchronous operation.
 	/// Task result contains <see cref="IEnumerable{T}"/> of matchesIds.</returns>
-	Task<IEnumerable<long>> GetParsedMatchesForAccountAsync(long accountId);
+	Task<IEnumerable<long>> GetParsedMatchesForAccountAsync(long accountId, bool? isForRadiant);
 }

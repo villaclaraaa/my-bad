@@ -27,7 +27,9 @@ public static class WardModelExtensions
 					var key = (cellX + dx, cellY + dy);
 
 					if (!grid.TryGetValue(key, out var bucket))
+					{
 						continue;
+					}
 
 					foreach (var existing in bucket)
 					{

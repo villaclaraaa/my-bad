@@ -146,11 +146,11 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 		await _matchService.AddRangeAsync(includedMatches.ToList());
 
 		// Finally get updated wards list from storage and compose response
-		var newWardsList = await _wardService.GetAllForAccountAsync(request.AccountId);
+		var newWardsList = await _wardService.GetAllBySideAndAccountAsync(request.AccountId, request.ForRadiantSide);
 		var wardsList = newWardsList.ToList().GetApproximatedList();
 		response.ObserverWards = [.. wardsList.Select(w => ConvertToWardEfficiency(w))];
 		response.Errors = [.. errors];
-		response.IncludedMatches = (ICollection<long>)await _matchService.GetParsedMatchesForAccountAsync(request.AccountId);
+		response.IncludedMatches = (ICollection<long>)await _matchService.GetParsedMatchesForAccountAsync(request.AccountId, request.ForRadiantSide);
 		/* */
 
 

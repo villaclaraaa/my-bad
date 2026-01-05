@@ -38,7 +38,7 @@ public static class WardEndpoints
 	}
 
 	private static async Task<IResult> GetWardsEfficiency(
-		[FromQuery] long accountId,
+		[FromQuery] long accountId, [FromQuery] bool? forRadiant,
 		IInfoProvider<WardsEfficiencyRequest, WardsEfficiencyResponse> provider)
 	{
 		//ArgumentOutOfRangeException.ThrowIfNegative(accountId);
@@ -47,6 +47,7 @@ public static class WardEndpoints
 			return TypedResults.BadRequest("AccountId must be a positive number.");
 		}
 		var request = new WardsEfficiencyRequest(accountId);
+		request.ForRadiantSide = forRadiant;
 		var response = await provider.GetInfoAsync(request);
 		return TypedResults.Ok(response);
 	}
