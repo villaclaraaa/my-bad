@@ -46,19 +46,8 @@ public class ParsedMatchWardInfoService : IParsedMatchWardInfoService
 	}
 
 	/// <inheritdoc />
-	public async Task<IEnumerable<long>> GetParsedMatchesForAccountAsync(long accountId, bool? isForRadiant)
-	{
-		var query = _dbContext.ParsedMatchWardInfos.AsQueryable();
-
-		query = query.Where(x => x.AccountId == accountId);
-
-		if (isForRadiant != null)
-		{
-			query = query.Where(x => x.IsRadiantPlayer == isForRadiant);
-		}
-
-		return await query.Select(x => x.MatchId).ToListAsync();
-	}
+	public async Task<IEnumerable<long>> GetParsedMatchesForAccountAsync(long accountId) =>
+		await _dbContext.ParsedMatchWardInfos.Where(x => x.AccountId == accountId).Select(x => x.MatchId).ToListAsync();
 
 	/// <inheritdoc />
 	public async Task<bool> IsMatchParsedAsync(long matchId, long accountId) =>

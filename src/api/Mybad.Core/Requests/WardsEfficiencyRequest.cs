@@ -11,5 +11,4 @@ public class WardsEfficiencyRequest : BaseRequest, IAccountPiece
 	}
 
 	public required long AccountId { get; init; }
-	public bool? ForRadiantSide { get; set; }
 }

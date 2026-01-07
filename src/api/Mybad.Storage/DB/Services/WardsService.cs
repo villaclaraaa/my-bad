@@ -46,6 +46,7 @@ public class WardsService : IWardService
 		await _dbContext.SaveChangesAsync();
 	}
 
+	/// <inheritdoc />
 	public async Task AddRangeAsync(IEnumerable<WardModel> wards)
 	{
 		var entities = wards.Select(x => x.MapToEntity());
@@ -60,22 +61,8 @@ public class WardsService : IWardService
 
 	/// <inheritdoc/>
 	public async Task<IEnumerable<WardModel>> GetAllForAccountAsync(long accountId) =>
-		await _dbContext.Wards.Where(x => x.AccountId == accountId)
+		await _dbContext.Wards.Include(x => x.ParsedMatch).Where(x => x.AccountId == accountId)
 			.Select(x => x.MapToModel()).ToListAsync();
-
-	public async Task<IEnumerable<WardModel>> GetAllBySideAndAccountAsync(long accountId, bool? isRadiant = null)
-	{
-		var query = _dbContext.Wards.Include(x => x.ParsedMatch).AsQueryable();
-
-		query = query.Where(x => x.AccountId == accountId);
-
-		if (isRadiant != null)
-		{
-			query = query.Where(x => x.ParsedMatch.IsRadiantPlayer == isRadiant.Value);
-		}
-
-		return await query.Select(x => x.MapToModel()).ToListAsync();
-	}
 
 	/// <inheritdoc/>
 	public async Task DeleteAllForAccountAsync(long accountId)

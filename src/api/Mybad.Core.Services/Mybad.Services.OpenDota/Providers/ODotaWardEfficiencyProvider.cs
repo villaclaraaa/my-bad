@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Collections.Concurrent;
+using System.Net.Http.Json;
+using Microsoft.Extensions.Logging;
 using Mybad.Core;
 using Mybad.Core.DomainModels;
 using Mybad.Core.Requests;
@@ -9,8 +11,6 @@ using Mybad.Core.Utility;
 using Mybad.Services.OpenDota.ApiResponseModels;
 using Mybad.Services.OpenDota.ApiResponseModels.Player;
 using Mybad.Services.OpenDota.ApiResponseReaders;
-using System.Collections.Concurrent;
-using System.Net.Http.Json;
 
 namespace Mybad.Services.OpenDota.Providers;
 
@@ -146,11 +146,11 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 		await _matchService.AddRangeAsync(includedMatches.ToList());
 
 		// Finally get updated wards list from storage and compose response
-		var newWardsList = await _wardService.GetAllBySideAndAccountAsync(request.AccountId, request.ForRadiantSide);
+		var newWardsList = await _wardService.GetAllForAccountAsync(request.AccountId);
 		var wardsList = newWardsList.ToList().GetApproximatedList();
 		response.ObserverWards = [.. wardsList.Select(w => ConvertToWardEfficiency(w))];
 		response.Errors = [.. errors];
-		response.IncludedMatches = (ICollection<long>)await _matchService.GetParsedMatchesForAccountAsync(request.AccountId, request.ForRadiantSide);
+		response.IncludedMatches = (ICollection<long>)await _matchService.GetParsedMatchesForAccountAsync(request.AccountId);
 		/* */
 
 
@@ -219,6 +219,7 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 			Amount = ward.Amount,
 			AverageTimeLived = ward.TimeLivedSeconds / ward.Amount,
 			EfficiencyScore = (float)Math.Round(Math.Clamp(timeRatio, 0.0f, 1.0f), 2),
+			IsRadiantSide = ward.IsRadiantSide,
 		};
 	}
 }
