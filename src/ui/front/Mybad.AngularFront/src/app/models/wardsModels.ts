@@ -19,6 +19,7 @@ export interface WardSimpleEfficiency {
     amount: number;
     averageTimeLived: number;
     efficiencyScore: number;
+    isRadiantSide: boolean;
 }
 
 export interface WardsEffApiResponse {

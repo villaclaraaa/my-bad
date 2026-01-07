@@ -63,40 +63,71 @@
   <div class="w-full md:w-3/5 flex flex-col gap-6 text-white overflow-y-auto lg:max-h-[50vh]">
 
     <!-- Side filter -->
-<div class="flex justify-center gap-6 my-4">
-  <label class="flex items-center gap-2 cursor-pointer">
+<div class="flex justify-center gap-4 my-4">
+  <label class="cursor-pointer">
     <input
       type="radio"
       name="side"
-      value="all"
+      class="peer hidden"
       [checked]="selectedSide() === 'all'"
       (change)="onSideChange('all')"
     />
-    <span>All</span>
+    <span
+      class="px-4 py-2 rounded-full border text-sm font-medium
+             border-gray-300 text-gray-100
+             peer-checked:bg-blue-600
+             peer-checked:text-white
+             peer-checked:border-blue-600
+             hover:bg-gray-100 hover:text-gray-600
+             transition"
+    >
+      All
+    </span>
   </label>
 
-  <label class="flex items-center gap-2 cursor-pointer">
+  <label class="cursor-pointer">
     <input
       type="radio"
       name="side"
-      value="radiant"
+      class="peer hidden"
       [checked]="selectedSide() === 'radiant'"
       (change)="onSideChange('radiant')"
     />
-    <span>Radiant</span>
+    <span
+      class="px-4 py-2 rounded-full border text-sm font-medium
+             border-gray-300 text-gray-100
+             peer-checked:bg-green-900
+             peer-checked:text-white
+             peer-checked:border-green-950
+             hover:bg-gray-100 hover:text-gray-600
+             transition"
+    >
+      Radiant
+    </span>
   </label>
 
-  <label class="flex items-center gap-2 cursor-pointer">
+  <label class="cursor-pointer">
     <input
       type="radio"
       name="side"
-      value="dire"
+      class="peer hidden"
       [checked]="selectedSide() === 'dire'"
       (change)="onSideChange('dire')"
     />
-    <span>Dire</span>
+    <span
+      class="px-4 py-2 rounded-full border text-sm font-medium
+             border-gray-300 text-gray-100
+             peer-checked:bg-red-900
+             peer-checked:text-white
+             peer-checked:border-red-950
+             hover:bg-gray-100 hover:text-gray-600
+             transition"
+    >
+      Dire
+    </span>
   </label>
 </div>
+
 
     <div class="">
       <span class="small block text-center text-gray-400">Only parsed matches from latest 20 (and already added here) in

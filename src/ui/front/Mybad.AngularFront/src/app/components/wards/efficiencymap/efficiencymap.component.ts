@@ -93,7 +93,14 @@ apiResponse = toSignal(
   
 wardsList = computed(() => {
   const wards = this.apiResponse()?.observerWards ?? [];
-  return [...wards].sort((a, b) => b.efficiencyScore - a.efficiencyScore);
+  const side = this.selectedSide(); // 👈 dependency
+
+  const filteredWards =
+    side === 'all'
+      ? wards
+      : wards.filter(w => w.isRadiantSide === (side === 'radiant') ); // adjust property name
+
+  return [...filteredWards].sort((a, b) => b.efficiencyScore - a.efficiencyScore);
 });
 
 
