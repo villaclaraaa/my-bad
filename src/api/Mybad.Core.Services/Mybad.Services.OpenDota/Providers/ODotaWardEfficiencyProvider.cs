@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Mybad.Core;
 using Mybad.Core.DomainModels;
@@ -60,10 +61,6 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 	{
 		ArgumentNullException.ThrowIfNull(request.AccountId);
 
-		var response = new WardsEfficiencyResponse(request.AccountId);
-
-		var localWards = await _wardService.GetAllForAccountAsync(request.AccountId);
-
 		var http = _factory.CreateClient("ODota");
 
 		// Get recent matches
@@ -71,18 +68,25 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 		if (!rMatchesRequest.IsSuccessStatusCode)
 		{
 			_logger.LogWarning("Failed to get recent matches for account {AccountId}. Status code: {StatusCode}", request.AccountId, rMatchesRequest.StatusCode);
-			response.Errors.Add($"Failed to get recent matches for account {request.AccountId}. Status code: {rMatchesRequest.StatusCode}");
-			response.ObserverWards = [.. localWards.Select(w => ConvertToWardEfficiency(w))];
-			return response;
+			var localResponse = await CreateResponseFromLocal(request.AccountId);
+			localResponse.Errors.Add($"Failed to get recent matches for account {request.AccountId}. Status code: {rMatchesRequest.StatusCode}");
+			return localResponse;
 		}
-		var recentMatchesResponse = await rMatchesRequest.Content.ReadFromJsonAsync<List<RecentMatch>>();
-		if (recentMatchesResponse == null)
+		List<RecentMatch> recentMatchesResponse;
+		try
 		{
-			response.Errors.Add($"Recent matches response could not be properly read. Account id {request.AccountId}.");
-			response.ObserverWards = [.. localWards.Select(w => ConvertToWardEfficiency(w))];
-			return response;
+			recentMatchesResponse = await rMatchesRequest.Content.ReadFromJsonAsync<List<RecentMatch>>()
+				?? throw new JsonException();
+		}
+		catch (JsonException ex)
+		{
+			_logger.LogWarning("Recent matches response could not be properly read. Account id {AccountId}. Ex - {ex}", request.AccountId, ex.Message);
+			var localResponse = await CreateResponseFromLocal(request.AccountId);
+			localResponse.Errors.Add($"Recent matches response could not be properly read. Account id {request.AccountId}. Ex - {ex.Message}.");
+			return localResponse;
 		}
 
+		var response = new WardsEfficiencyResponse(request.AccountId);
 		/* 
 		 * Code below is using Parallel foreach to make foreach loop in parallel to be fast.
 		 * Uncomment this and comment code below this to make it work in parallel.
@@ -128,29 +132,43 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 				return;
 			}
 
+			var playerInfo = matchDetailsResponse.Players.FirstOrDefault(x => x.AccountId == request.AccountId);
+			if (playerInfo == null)
+			{
+				response.Errors.Add($"Failed to get player info in match {match.MatchId}, match parsed in ODota though.");
+				return;
+			}
+
 			var obsesPerMatch = _reader.ConvertWardsToWardModel(matchDetailsResponse, request.AccountId, match.MatchId, true).GetApproximatedList();
 			foreach (var o in obsesPerMatch)
 			{
 				obses.Add(o);
 			}
 
-			var playerInfo = matchDetailsResponse.Players.FirstOrDefault(x => x.AccountId == request.AccountId)
-				?? throw new InvalidOperationException();
 			var isPlayerRadiant = playerInfo.Slot < 128;
 			var didWin = isPlayerRadiant == matchDetailsResponse.IsRadiantWin;
 			// add wards per match into db and add matchId into parsed matches
-			includedMatches.Add(new ParsedMatchWardInfoModel(match.MatchId, request.AccountId, isRadiantPlayer: isPlayerRadiant, isWonMatch: didWin, DateTimeOffset.FromUnixTimeSeconds(match.StartTimeSecondsEpoch).UtcDateTime));
+			includedMatches.Add(new ParsedMatchWardInfoModel(
+				match.MatchId,
+				request.AccountId,
+				isRadiantPlayer: isPlayerRadiant,
+				isWonMatch: didWin,
+				DateTimeOffset.FromUnixTimeSeconds(match.StartTimeSecondsEpoch).UtcDateTime,
+				heroId: playerInfo.HeroId));
 		});
 
+		await _matchService.AddRangeAsync([.. includedMatches]);
 		await _wardService.AddRangeAsync([.. obses]);
-		await _matchService.AddRangeAsync(includedMatches.ToList());
 
 		// Finally get updated wards list from storage and compose response
 		var newWardsList = await _wardService.GetAllForAccountAsync(request.AccountId);
 		var wardsList = newWardsList.ToList().GetApproximatedList();
+		var parsedMatches = await _matchService.GetParsedMatchesForAccountAsync(request.AccountId);
 		response.ObserverWards = [.. wardsList.Select(w => ConvertToWardEfficiency(w))];
 		response.Errors = [.. errors];
-		response.IncludedMatches = (ICollection<long>)await _matchService.GetParsedMatchesForAccountAsync(request.AccountId);
+		response.IncludedMatches = [.. parsedMatches.Select(x => ConvertToParsedMatchWardEfficiency(x))];
+
+		return response;
 		/* */
 
 
@@ -192,7 +210,6 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 		//	var obsesPerMatch = _reader.ConvertWardsToWardModel(matchDetailsResponse, request.AccountId, match.MatchId, true);
 		//	obsesPerMatch = obsesPerMatch.GetApproximatedList();
 
-
 		//	// add wards per match into db and add matchId into parsed matches
 		//	await _wardService.AddRangeAsync(obsesPerMatch);
 		//	await _matchService.AddAsync(match.MatchId, request.AccountId, DateTimeOffset.FromUnixTimeSeconds(match.StartTimeSecondsEpoch).UtcDateTime);
@@ -203,9 +220,9 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 		//var wardsList = newWardsList.ToList().GetApproximatedList();
 		//response.ObserverWards = [.. wardsList.Select(w => ConvertToWardEfficiency(w))];
 		//response.IncludedMatches = (ICollection<long>)await _matchService.GetParsedMatchesForAccountAsync(request.AccountId);
-		/* */
 
-		return response;
+		//return response;
+		/* */
 	}
 
 	private static WardEfficiency ConvertToWardEfficiency(WardModel ward)
@@ -221,5 +238,29 @@ public class ODotaWardEfficiencyProvider : IInfoProvider<WardsEfficiencyRequest,
 			EfficiencyScore = (float)Math.Round(Math.Clamp(timeRatio, 0.0f, 1.0f), 2),
 			IsRadiantSide = ward.IsRadiantSide,
 		};
+	}
+
+	private static ParsedMatchWardEfficiency ConvertToParsedMatchWardEfficiency(ParsedMatchWardInfoModel match)
+	{
+		return new ParsedMatchWardEfficiency
+		{
+			AccountId = match.AccountId,
+			MatchId = match.MatchId,
+			IsRadiantPlayer = match.IsRadiantPlayer,
+			IsWonMatch = match.IsWonMatch,
+			PlayedAtDateUtc = match.PlayedAtDateUtc,
+			HeroName = ((HeroesEnum)match.HeroId).ToString()
+		};
+	}
+
+	private async Task<WardsEfficiencyResponse> CreateResponseFromLocal(long accountId)
+	{
+		var response = new WardsEfficiencyResponse(accountId);
+		var localWards = await _wardService.GetAllForAccountAsync(response.AccountId);
+		var parsedMatches = await _matchService.GetParsedMatchesForAccountAsync(response.AccountId);
+		response.ObserverWards = [.. localWards.Select(w => ConvertToWardEfficiency(w))];
+		response.IncludedMatches = [.. parsedMatches.Select(x => ConvertToParsedMatchWardEfficiency(x))];
+		return response;
+
 	}
 }

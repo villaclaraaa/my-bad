@@ -6,5 +6,6 @@ public class ParsedMatchWardInfo
 	public long AccountId { get; set; }
 	public bool IsRadiantPlayer { get; set; }
 	public bool IsWonMatch { get; set; }
+	public int HeroId { get; set; }
 	public DateTime PlayedAtDateUtc { get; set; }
 }

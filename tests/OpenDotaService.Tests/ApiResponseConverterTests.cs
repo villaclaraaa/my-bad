@@ -1,15 +1,15 @@
-﻿using Mybad.Core.DomainModels;
+﻿using System.Text.Json;
+using Mybad.Core.DomainModels;
 using Mybad.Core.Responses.Entries;
 using Mybad.Services.OpenDota.ApiResponseModels;
 using Mybad.Services.OpenDota.ApiResponseReaders;
-using System.Text.Json;
 
 namespace OpenDotaService.Tests;
 
 public class ApiResponseConverterTests
 {
 	[Fact]
-	public async Task ConvertWardMapPlacementResponse_Returns_BothListsWards()
+	public void ConvertWardMapPlacementResponse_Returns_BothListsWards()
 	{
 		// Arrange 
 		var apiResponseFilePath = "Data/wardmap.txt";
@@ -76,7 +76,7 @@ public class ApiResponseConverterTests
 	}
 
 	[Fact]
-	public async Task ConvertWardsToWardModel_Returns_ListWardModels()
+	public void ConvertWardsToWardModel_Returns_ListWardModels()
 	{
 		// Arrange
 		var apiResponseFilePath = "Data/8557298604_full.txt";

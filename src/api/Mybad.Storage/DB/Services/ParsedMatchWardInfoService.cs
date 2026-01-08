@@ -26,7 +26,8 @@ public class ParsedMatchWardInfoService : IParsedMatchWardInfoService
 			AccountId = model.AccountId,
 			IsRadiantPlayer = model.IsRadiantPlayer,
 			IsWonMatch = model.IsWonMatch,
-			PlayedAtDateUtc = model.PlayedAtDateUtc
+			PlayedAtDateUtc = model.PlayedAtDateUtc,
+			HeroId = model.HeroId,
 		});
 		await _dbContext.SaveChangesAsync();
 	}
@@ -40,18 +41,23 @@ public class ParsedMatchWardInfoService : IParsedMatchWardInfoService
 			AccountId = x.AccountId,
 			IsRadiantPlayer = x.IsRadiantPlayer,
 			IsWonMatch = x.IsWonMatch,
-			PlayedAtDateUtc = x.PlayedAtDateUtc
+			PlayedAtDateUtc = x.PlayedAtDateUtc,
+			HeroId = x.HeroId
 		}));
 		await _dbContext.SaveChangesAsync();
 	}
 
 	/// <inheritdoc />
-	public async Task<IEnumerable<long>> GetParsedMatchesForAccountAsync(long accountId) =>
-		await _dbContext.ParsedMatchWardInfos.Where(x => x.AccountId == accountId).Select(x => x.MatchId).ToListAsync();
+	public async Task<IEnumerable<ParsedMatchWardInfoModel>> GetParsedMatchesForAccountAsync(long accountId) =>
+		await _dbContext.ParsedMatchWardInfos
+			.Where(x => x.AccountId == accountId)
+			.Select(x => new ParsedMatchWardInfoModel(x.MatchId, x.AccountId, x.IsRadiantPlayer, x.IsWonMatch, x.PlayedAtDateUtc, x.HeroId))
+			.ToListAsync();
 
 	/// <inheritdoc />
 	public async Task<bool> IsMatchParsedAsync(long matchId, long accountId) =>
-		await _dbContext.ParsedMatchWardInfos.AnyAsync(x => x.MatchId == matchId && x.AccountId == accountId);
+		await _dbContext.ParsedMatchWardInfos
+			.AnyAsync(x => x.MatchId == matchId && x.AccountId == accountId);
 
 	/// <inheritdoc />
 	public async Task RemoveAsync(long matchId, long accountId)
