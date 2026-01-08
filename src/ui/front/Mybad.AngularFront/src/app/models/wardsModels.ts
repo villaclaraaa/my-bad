@@ -24,11 +24,20 @@ export interface WardSimpleEfficiency {
 
 export interface WardsEffApiResponse {
     observerWards: WardSimpleEfficiency[];
-    includedMatches: number[];
+    includedMatches: ParsedMatchWardEfficiency[];
     totalWardsPlaced: number;
     wardsDistinctPositions: number;
     accountId: number;
     id: number;
     errors: string[];
+}
+
+export interface ParsedMatchWardEfficiency {
+    matchId: number;
+    accountId: number;
+    heroName: string;
+    isRadiantPlayer: boolean;
+    isWonMatch: boolean;
+    playedAtDateUtc: Date;
 }
 

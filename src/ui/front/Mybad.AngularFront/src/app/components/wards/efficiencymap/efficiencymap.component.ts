@@ -103,6 +103,9 @@ wardsList = computed(() => {
   return [...filteredWards].sort((a, b) => b.efficiencyScore - a.efficiencyScore);
 });
 
+includedMatches = computed(() => {
+  return this.apiResponse()?.includedMatches;
+})
 
 hoveredWard = signal<WardSimpleEfficiency | null>(null);
 
