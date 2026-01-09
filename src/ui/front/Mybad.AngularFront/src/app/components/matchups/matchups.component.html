@@ -5,7 +5,7 @@
   <div class="teams-section">
     <!-- My Team -->
     <div class="team-panel">
-      <h2>MY TEAM</h2>
+      <h2>My Team</h2>
       <div class="team-slots">
         <div class="slot" *ngFor="let hero of myTeam()" (click)="removeHero(hero, 'my')">
           <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name">
@@ -19,7 +19,7 @@
 
     <!-- Enemy Team -->
     <div class="team-panel">
-      <h2>ENEMY TEAM</h2>
+      <h2>Enemy Team</h2>
       <div class="team-slots">
         <div class="slot" *ngFor="let hero of enemyTeam()" (click)="removeHero(hero, 'enemy')">
           <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name">
@@ -37,33 +37,54 @@
     
     <!-- Best Ally -->
     <div class="result-column">
-      <h3>BEST WITH ALLIES</h3>
-      <div class="result-list">
-        <div class="result-item" *ngFor="let m of bestAlly()">
+      <h3>Best with allies</h3>
+
+      <div *ngIf="isLoadingAlly()" class="loader-container">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+      </div>
+
+      <div *ngIf="!isLoadingAlly()" class="result-list">
+        <div class="result-item" *ngFor="let m of bestAlly(); let i = index">
+          <span class="res-number">{{ i + 1 }})</span>
+          <img [src]="getHeroImgById(m.heroId)" class="result-hero-img">
           <span class="res-name">{{ m.heroName }}</span>
-          <span class="res-score">{{ m.rating | number:'1.1-1' }}</span>
         </div>
       </div>
     </div>
 
     <!-- Best Computed -->
     <div class="result-column highlight">
-      <h3>BEST COMPUTED</h3>
-      <div class="result-list">
-        <div class="result-item" *ngFor="let m of bestComputed()">
+      <h3>Best computed</h3>
+
+      <div *ngIf="isLoadingComputed()" class="loader-container">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+      </div>
+
+      <div *ngIf="!isLoadingComputed()" class="result-list">
+        <div class="result-item" *ngFor="let m of bestComputed(); let i = index">
+          <span class="res-number">{{ i + 1 }})</span>
+          <img [src]="getHeroImgById(m.heroId)" class="result-hero-img">
           <span class="res-name">{{ m.heroName }}</span>
-          <span class="res-score">{{ m.rating | number:'1.1-1' }}</span>
         </div>
       </div>
     </div>
 
     <!-- Best Versus -->
     <div class="result-column">
-      <h3>BEST VS ENEMIES</h3>
-      <div class="result-list">
-        <div class="result-item" *ngFor="let m of bestVersus()">
+
+      <h3>Best vs enemies</h3>
+      <div *ngIf="isLoadingVersus()" class="loader-container">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+      </div>
+
+      <div *ngIf="!isLoadingVersus()" class="result-list">
+        <div class="result-item" *ngFor="let m of bestVersus(); let i = index">
+          <span class="res-number">{{ i + 1 }})</span>
+          <img [src]="getHeroImgById(m.heroId)" class="result-hero-img">
           <span class="res-name">{{ m.heroName }}</span>
-          <span class="res-score">{{ m.rating | number:'1.1-1' }}</span>
         </div>
       </div>
     </div>
@@ -78,7 +99,7 @@
     <button class="close-btn" (click)="closePicker()">X</button>
     
     <div class="picker-header">
-      <span class="title">CHOOSE HERO</span>
+      <span class="title">Choose hero</span>
       <div class="search-box">
         <input 
           type="text" 
@@ -86,7 +107,6 @@
           [ngModel]="searchText()" 
           (ngModelChange)="searchText.set($event)"
         >
-        <i class="search-icon">🔍</i>
       </div>
     </div>
 
@@ -95,7 +115,7 @@
       <div class="attr-column str-col">
         <div class="attr-header">
           <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-str-active.png" alt="STR">
-          <span>STRENGTH</span>
+          <span>Strength</span>
         </div>
         <div class="hero-list">
           <div *ngFor="let hero of filteredGroupedHeroes().str" class="hero-card" (click)="selectHero(hero)">
@@ -110,7 +130,7 @@
       <div class="attr-column agi-col">
         <div class="attr-header">
           <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-agi-active.png" alt="AGI">
-          <span>AGILITY</span>
+          <span>Agility</span>
         </div>
         <div class="hero-list">
           <div *ngFor="let hero of filteredGroupedHeroes().agi" class="hero-card" (click)="selectHero(hero)">
@@ -125,7 +145,7 @@
       <div class="attr-column int-col">
         <div class="attr-header">
            <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-int-active.png" alt="INT">
-          <span>INTELLIGENCE</span>
+          <span>Intelligence</span>
         </div>
         <div class="hero-list">
           <div *ngFor="let hero of filteredGroupedHeroes().int" class="hero-card" (click)="selectHero(hero)">
@@ -140,7 +160,7 @@
       <div class="attr-column uni-col">
         <div class="attr-header">
            <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/herogrid/filter-uni-active.png" alt="UNI">
-          <span>UNIVERSAL</span>
+          <span>Universal</span>
         </div>
         <div class="hero-list">
           <div *ngFor="let hero of filteredGroupedHeroes().uni" class="hero-card" (click)="selectHero(hero)">
