@@ -63,114 +63,62 @@
   <div class="w-full md:w-3/5 flex flex-col gap-6 text-white overflow-y-auto lg:max-h-[90vh]">
 
     <!-- Side filter -->
-<div class="flex justify-center gap-4 my-4">
-  <label class="cursor-pointer">
-    <input
-      type="radio"
-      name="side"
-      class="peer hidden"
-      [checked]="selectedSide() === 'all'"
-      (change)="onSideChange('all')"
-    />
-    <span
-      class="px-4 py-2 rounded-full border text-sm font-medium
+    <div class="flex justify-center gap-4 my-4">
+      <label class="cursor-pointer">
+        <input type="radio" name="side" class="peer hidden" [checked]="selectedSide() === 'all'"
+          (change)="onSideChange('all')" />
+        <span class="px-4 py-2 rounded-full border text-sm font-medium
              border-gray-300 text-gray-100
              peer-checked:bg-blue-600
              peer-checked:text-white
              peer-checked:border-blue-600
              hover:bg-gray-100 hover:text-gray-600
-             transition"
-    >
-      All
-    </span>
-  </label>
+             transition">
+          All
+        </span>
+      </label>
 
-  <label class="cursor-pointer">
-    <input
-      type="radio"
-      name="side"
-      class="peer hidden"
-      [checked]="selectedSide() === 'radiant'"
-      (change)="onSideChange('radiant')"
-    />
-    <span
-      class="px-4 py-2 rounded-full border text-sm font-medium
+      <label class="cursor-pointer">
+        <input type="radio" name="side" class="peer hidden" [checked]="selectedSide() === 'radiant'"
+          (change)="onSideChange('radiant')" />
+        <span class="px-4 py-2 rounded-full border text-sm font-medium
              border-gray-300 text-gray-100
              peer-checked:bg-green-900
              peer-checked:text-white
              peer-checked:border-green-950
              hover:bg-gray-100 hover:text-gray-600
-             transition"
-    >
-      Radiant
-    </span>
-  </label>
+             transition">
+          Radiant
+        </span>
+      </label>
 
-  <label class="cursor-pointer">
-    <input
-      type="radio"
-      name="side"
-      class="peer hidden"
-      [checked]="selectedSide() === 'dire'"
-      (change)="onSideChange('dire')"
-    />
-    <span
-      class="px-4 py-2 rounded-full border text-sm font-medium
+      <label class="cursor-pointer">
+        <input type="radio" name="side" class="peer hidden" [checked]="selectedSide() === 'dire'"
+          (change)="onSideChange('dire')" />
+        <span class="px-4 py-2 rounded-full border text-sm font-medium
              border-gray-300 text-gray-100
              peer-checked:bg-red-900
              peer-checked:text-white
              peer-checked:border-red-950
              hover:bg-gray-100 hover:text-gray-600
-             transition"
-    >
-      Dire
-    </span>
-  </label>
-</div>
+             transition">
+          Dire
+        </span>
+      </label>
+    </div>
 
 
     <div class="">
       <span class="small block text-center text-gray-400">Only parsed matches from latest 20 (and already added here) in
         OpenDota are counted in this list.<br />
         Please parse more matches in OpenDota if you want them to be included.</span>
-    <!-- Match IDs list -->
-    <div class="w-full bg-slate-800 rounded-xl shadow p-4">
+      <!-- Match IDs list -->
+      <div class="w-full bg-slate-800 rounded-xl shadow p-4">
 
-      <h2 class="text-lg font-semibold mb-3 text-white text-center">Parsed matches</h2>
-      <!-- Optional: header row for desktop -->
-<ul class="space-y-2">
-  <li *ngFor="let match of matchIds()"
-      class="bg-slate-600 p-2 rounded-lg 
-             flex flex-col md:grid md:grid-cols-[120px_150px_80px_80px_180px] gap-2 md:items-center">
+        <h2 class="text-lg font-semibold mb-3 text-white text-center">Parsed matches</h2>
 
-    <!-- Match ID -->
-    <a class="text-white truncate md:whitespace-normal" href="https://www.opendota.com/matches/{{match.matchId}}" target="_blank"
-       title="Open match details in OpenDota website.">
-      {{ match.matchId }}
-    </a>
-
-    <!-- Hero Name -->
-    <span class="text-white truncate" title="{{ match.heroName }}">
-      {{ match.heroName }}
-    </span>
-
-    <!-- Win/Loss -->
-    <span class= "text-center" [ngClass]="match.isWonMatch ? 'text-green-600' : 'text-red-400' ">
-      {{ match.isWonMatch ? 'Won' : 'Lost' }}
-    </span>
-
-    <!-- Side -->
-    <span class="text-white text-center" [ngClass]="match.isRadiantPlayer ? 'text-green-300' : 'text-orange-400' ">
-      {{ match.isRadiantPlayer ? 'Radiant' : 'Dire' }}
-    </span>
-
-    <!-- Date Played -->
-    <span class="text-white truncate" title="{{ match.playedAtDateUtc }}">
-      {{ match.playedAtDateUtc | date:'yyyy-MM-dd HH:mm' }} UTC
-    </span>
-
-    <!-- Delete Button -->
-    <!-- <button (click)="removeMatchId(match.matchId)" title="Remove match from scanned."
+        <!-- Delete Button FOR EACH LI ELEMENT -->
+        <!-- <button (click)="removeMatchId(match.matchId)" title="Remove match from scanned."
             class="text-red-600 font-semibold self-start md:self-auto">
       <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0,0,256,256">
         <g fill="#ea6060" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt"
@@ -186,10 +134,74 @@
       </svg>
     </button> -->
 
+       <ul class="space-y-1">
+  <li *ngFor="let match of matchIds()"
+      class="bg-slate-700/60 hover:bg-slate-700 transition
+             rounded-md px-3 py-2
+             grid grid-cols-[1.6fr_0.7fr_1fr] gap-3 items-center">
+
+    <!-- Hero -->
+    <div class="min-w-0">
+      <div class="text-white font-medium truncate"
+           title="{{ match.heroName }}">
+        {{ match.heroName }}
+      </div>
+
+      <!-- Match ID -->
+      <a class="text-xs text-slate-400 hover:text-slate-200 truncate flex items-center gap-1"
+         href="https://www.opendota.com/matches/{{match.matchId}}"
+         target="_blank">
+        <span>#{{ match.matchId }}</span>
+        <svg viewBox="0 0 24 24" fill="none"
+             xmlns="http://www.w3.org/2000/svg"
+             class="size-4">
+          <path d="M16.3891 8.11096L8.61091 15.8891"
+                stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M16.3891 8.11096L16.7426 12"
+                stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M16.3891 8.11096L12.5 7.75741"
+                stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </a>
+    </div>
+
+    <!-- Result + Side -->
+    <div class="flex flex-col items-center leading-tight">
+      <!-- WIN / LOSS -->
+      <div class="font-semibold"
+           [ngClass]="match.isWonMatch ? 'text-green-400' : 'text-red-400'">
+        {{ match.isWonMatch ? 'WIN' : 'LOSS' }}
+      </div>
+
+      <!-- Side -->
+      <span class="mt-0.5 text-[10px] px-2 py-0.5 rounded-full"
+            [ngClass]="match.isRadiantPlayer
+              ? 'bg-green-500/20 text-green-300'
+              : 'bg-orange-500/20 text-orange-300'">
+        {{ match.isRadiantPlayer ? 'Radiant' : 'Dire' }}
+      </span>
+    </div>
+
+    <!-- Date -->
+    <div class="text-xs text-slate-300 justify-self-end whitespace-nowrap"
+         title="{{ match.playedAtDateUtc }}">
+
+      <span class="hidden md:inline">
+        {{ match.playedAtDateUtc | date:'dd-MM-yyyy HH:mm' }} UTC
+      </span>
+
+      <span class="inline md:hidden">
+        {{ match.playedAtDateUtc | date:'dd-MM-yyyy' }}
+      </span>
+    </div>
+
   </li>
 </ul>
 
-    </div>
+      </div>
     </div>
 
   </div>

@@ -48,7 +48,16 @@ export class EfficiencymapComponent implements OnInit {
   accountId = input<number>(0);
   private wardsService = inject(WardsService);
 
-  matchIds = computed(() => this.apiResponse()?.includedMatches);
+  matchIds = computed(() => {
+    const side = this.selectedSide(); // 👈 dependency
+    const matches = this.apiResponse()?.includedMatches ?? [];
+
+  const filteredMatches =
+    side === 'all'
+      ? matches
+      : matches.filter(w => w.isRadiantPlayer === (side === 'radiant') ); // adjust property name
+      return [...filteredMatches];
+    });
 
   private isLoadingpage: boolean = true;
 
