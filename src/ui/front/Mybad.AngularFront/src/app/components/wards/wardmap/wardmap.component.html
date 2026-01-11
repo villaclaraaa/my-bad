@@ -1,7 +1,10 @@
-<div class="flex flex-col md:flex-row w-full h-full p-4 gap-4 items-start">
+<div class="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-4 md:px-20 py-4 w-full h-full">
 
-  <!-- MAP (2/5 on desktop) -->
-  <div class="w-full md:w-2/5 flex justify-center">
+  <!-- LEFT COLUMN -->
+  <div class="flex justify-center">
+    <div class="w-full max-w-xl px-4">
+      <!-- map content -->
+       <!-- MAP (2/5 on desktop) -->
     <div class="relative inline-block w-full max-w-[600px] aspect-square border rounded-xl overflow-hidden shadow">
 
       <!-- Map Image -->
@@ -15,32 +18,37 @@
       </div>
 
     </div>
+    </div>
   </div>
 
-  <!-- LIST (3/5 on desktop) -->
-  <div class="w-full md:w-3/5 flex flex-col gap-6 text-white overflow-y-auto lg:max-h-[75vh]">
-
-    <div class="bg-slate-800 rounded-xl shadow px-4 py-4">
-      <h2 class="text-lg font-semibold mb-3">Most used wards</h2>
+  <!-- RIGHT COLUMN -->
+  <div class="gap-6 text-white overflow-y-auto">
+    <!-- list content -->
+     <div class="bg-slate-800/50 rounded-xl shadow px-4 py-4 md:inline-block md:min-w-80">
+      <h2 class="text-lg font-semibold mb-3 text-center">Most used wards</h2>
 
       <!-- Header -->
       <div class="grid grid-cols-2 gap-2 text-sm font-semibold text-slate-300 border-b border-slate-600 pb-2 mb-2">
-        <span>Ward</span>
+        <span>Position</span>
         <span class="text-right">Amount</span>
       </div>
 
       <!-- Rows -->
       <div class="space-y-1">
         <div *ngFor="let w of wardsList()" (mouseenter)="hoveredWard.set(w)" (mouseleave)="hoveredWard.set(null)"
-          class="grid grid-cols-2 gap-2 bg-slate-600 px-3 py-2 rounded-lg">
-          <span>Ward [{{ w.x }}, {{ w.y }}]</span>
+          class="grid grid-cols-2 gap-2 bg-slate-600 px-3 py-2 rounded-lg
+          hover:bg-slate-500
+          transition">
+          <span>[{{ w.x }}, {{ w.y }}]</span>
           <span class="text-right font-semibold">{{ w.amount }}</span>
         </div>
       </div>
     </div>
 
+    <app-error [errorMessages]="apiErrors()"></app-error>
+    
   </div>
 
-    <app-error [errorMessages]="apiErrors()"></app-error>
-
 </div>
+
+

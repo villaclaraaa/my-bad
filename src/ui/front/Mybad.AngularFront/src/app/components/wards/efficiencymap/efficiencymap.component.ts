@@ -56,7 +56,7 @@ export class EfficiencymapComponent implements OnInit {
     side === 'all'
       ? matches
       : matches.filter(w => w.isRadiantPlayer === (side === 'radiant') ); // adjust property name
-      return [...filteredMatches];
+      return [...filteredMatches].sort((a, b) => b.matchId - a.matchId);
     });
 
   private isLoadingpage: boolean = true;

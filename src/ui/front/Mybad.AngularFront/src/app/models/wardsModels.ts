@@ -1,16 +1,26 @@
+import { BaseApiResponse } from "./baseApiResponse";
+
+// Interfaces related to Api response models.
+
+export interface WardsMapApiResponse extends BaseApiResponse {
+    observerWards: WardSimpleMap[];
+    sentryWards: WardSimpleMap[];
+    accountId: number;
+}
+
+export interface WardsEffApiResponse extends BaseApiResponse {
+    observerWards: WardSimpleEfficiency[];
+    includedMatches: ParsedMatchWardEfficiency[];
+    totalWardsPlaced: number;
+    wardsDistinctPositions: number;
+    accountId: number;
+}
+
 export interface WardSimpleMap {
     x: number;
     y: number;
     amount: number;
     efficiency?: number;
-}
-
-export interface WardsMapApiResponse {
-    observerWards: WardSimpleMap[];
-    sentryWards: WardSimpleMap[];
-    accountId: number;
-    id: number;
-    errors: string[];
 }
 
 export interface WardSimpleEfficiency {
@@ -20,16 +30,6 @@ export interface WardSimpleEfficiency {
     averageTimeLived: number;
     efficiencyScore: number;
     isRadiantSide: boolean;
-}
-
-export interface WardsEffApiResponse {
-    observerWards: WardSimpleEfficiency[];
-    includedMatches: ParsedMatchWardEfficiency[];
-    totalWardsPlaced: number;
-    wardsDistinctPositions: number;
-    accountId: number;
-    id: number;
-    errors: string[];
 }
 
 export interface ParsedMatchWardEfficiency {
