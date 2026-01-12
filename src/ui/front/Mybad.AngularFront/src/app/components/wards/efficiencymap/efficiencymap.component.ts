@@ -1,5 +1,5 @@
-import { Component, computed, HostListener, inject, input, Input, OnInit, output, signal } from '@angular/core';
-import { NgFor, NgStyle, CommonModule } from '@angular/common';
+import { Component, computed, HostListener, inject, input, OnInit, output, signal } from '@angular/core';
+import { NgFor, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { combineLatest, filter, map, shareReplay, startWith, Subject, switchMap, tap } from 'rxjs';
@@ -16,191 +16,146 @@ type SideFilter = 'all' | 'radiant' | 'dire';
   styleUrl: './efficiencymap.component.css'
 })
 export class EfficiencymapComponent implements OnInit {
-  ngOnInit(): void {
-        this.isLoadingOutput.emit(this.isLoadingpage);
-  }
-  newMatchId: string = '';
-  sortedWards: { id: number, efficiency: number }[] = [
-    { id: 1, efficiency: 100 },
-    { id: 2, efficiency: 90 },
-  ]
-  apiErrors = signal<string[]>([]);
-  private refresh$ = new Subject<void>();
-
-
-  removeMatchId(matchId: number) {
-    this.isLoadingOutput.emit(true); 
-    this.wardsService.removeMatchIdFromParsedMatchesEfficiency(matchId, this.accountId())
-    .subscribe({
-      next: (res) => {
-        console.log('Match removed:', res);
-        this.refresh$.next();
-      },
-      error: (err) => {
-        console.error('Failed to remove match:', err);
-        this.apiErrors.set(['Failed to remove match:', err]);
-      }
-    });
-  }
-
-
-  
-  accountId = input<number>(0);
   private wardsService = inject(WardsService);
+  
+  ngOnInit(): void {
+    this.isLoadingOutput.emit(this.isLoadingpage);
+  }
+
+  // Loading spinner variables.
+  private isLoadingpage: boolean = true;
+  isLoadingOutput = output<boolean>();
+  
+  apiErrors = signal<string[]>([]);
+  accountId = input<number>(0);
+  
+  private refresh$ = new Subject<void>();
+  apiResponse = toSignal(
+    combineLatest([
+      toObservable(this.accountId).pipe(
+        filter((id): id is number => id !== null)
+      ),
+      this.refresh$.pipe(
+        map(() => true),          // refresh click
+        startWith(false)          // initial load
+      )
+    ]).pipe(
+      tap(() => this.isLoadingOutput.emit(true)),
+      switchMap(([id, forceRefresh]) =>
+        this.wardsService.getWardsEfficiencyCached(id, forceRefresh).pipe(
+          tap(() => this.isLoadingOutput.emit(false))
+        )
+      )
+    ),
+    { initialValue: null }
+  );
 
   matchIds = computed(() => {
     const side = this.selectedSide(); // 👈 dependency
     const matches = this.apiResponse()?.includedMatches ?? [];
 
-  const filteredMatches =
-    side === 'all'
-      ? matches
-      : matches.filter(w => w.isRadiantPlayer === (side === 'radiant') ); // adjust property name
-      return [...filteredMatches].sort((a, b) => b.matchId - a.matchId);
-    });
+    const filteredMatches =
+      side === 'all'
+        ? matches
+        : matches.filter(w => w.isRadiantPlayer === (side === 'radiant')); // adjust property name
+    return [...filteredMatches].sort((a, b) => b.matchId - a.matchId);
+  });
 
-  private isLoadingpage: boolean = true;
+  // Is used as intermediate layer between apiResponse and scaledWards, which are used in html.
+  // Does some sorting and filtering.
+  wardsList = computed(() => {
+    const wards = this.apiResponse()?.observerWards ?? [];
+    const side = this.selectedSide(); // 👈 dependency
 
-  isLoadingOutput = output<boolean>();
+    const filteredWards =
+      side === 'all'
+        ? wards
+        : wards.filter(w => w.isRadiantSide === (side === 'radiant')); // adjust property name
 
-//   apiResponse = toSignal(
-//   toObservable(this.accountId).pipe(
-//     filter((id): id is number => id !== null),
-//     switchMap(id =>
-//       this.wardsService.getWardsEfficiencyCached(id).pipe(
-//         map(res => res),
-//         tap(() => {
-//           this.isLoadingOutput.emit(false); 
-//         })
-//       )
-//     )
-//   ),
-//   { initialValue: null }
-// );
+    return [...filteredWards].sort((a, b) => b.efficiencyScore - a.efficiencyScore);
+  });
 
-apiResponse = toSignal(
-  combineLatest([
-    toObservable(this.accountId).pipe(
-      filter((id): id is number => id !== null)
-    ),
-    this.refresh$.pipe(
-      map(() => true),          // refresh click
-      startWith(false)          // initial load
-    )
-  ]).pipe(
-    tap(() => this.isLoadingOutput.emit(true)),
-    switchMap(([id, forceRefresh]) =>
-      this.wardsService.getWardsEfficiencyCached(id, forceRefresh).pipe(
-        tap(() => this.isLoadingOutput.emit(false))
-      )
-    )
-  ),
-  { initialValue: null }
-);
+  /* 
+   * Gets color for wards efficiency based on efficiency number.
+   * Now we have 4 ranges - [0,0.25], [0.25,0.5], [0.5-0.75], [0.75-1].
+   */  
+  getEfficiencyClasses(efficiency: number): string {
+    const step = Math.min(3, Math.floor(efficiency * 4));
+    return this.colors[step];
+  }
+  private colors = [
+    "bg-red-500/50 border border-red-500",
+    "bg-orange-500/50 border border-orange-500",
+    "bg-yellow-500/50 border border-lime-500",
+    "bg-green-500/50 border border-green-500",
+  ];
+
+  /*
+   * Stuff for showing tooltip what is active ward.
+   */
+  activeWard = signal<WardSimpleEfficiency | null>(null);
+  tooltipPos = signal<{ x: number; y: number } | null>(null);
+  toggleWard(w: WardSimpleEfficiency, event: MouseEvent) {
+    event.stopPropagation();
+
+    const isSame =
+      this.activeWard()?.x === w.x &&
+      this.activeWard()?.y === w.y;
+    if (isSame) {
+      this.closeTooltip();
+      return;
+    }
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let x = event.clientX + this.OFFSET;
+    let y = event.clientY + this.OFFSET;
+
+    // 🔹 Clamp horizontally
+    if (x + this.TOOLTIP_WIDTH > viewportWidth) {
+      x = event.clientX - this.TOOLTIP_WIDTH - this.OFFSET;
+    }
+
+    // 🔹 Clamp vertically
+    if (y + this.TOOLTIP_HEIGHT > viewportHeight) {
+      y = viewportHeight - this.TOOLTIP_HEIGHT - this.OFFSET;
+    }
+
+    // 🔹 Prevent negative positions
+    x = Math.max(this.OFFSET, x);
+    y = Math.max(this.OFFSET, y);
+
+    this.activeWard.set(w);
+    this.tooltipPos.set({ x, y });
+  }
+
+  isActive(w: WardSimpleEfficiency) {
+    const active = this.activeWard();
+    return active?.x === w.x && active?.y === w.y;
+  }
+
+  selectedSide = signal<SideFilter>('all');
+  onSideChange(side: SideFilter) {
+    this.selectedSide.set(side);
+  }
 
 
-  
-wardsList = computed(() => {
-  const wards = this.apiResponse()?.observerWards ?? [];
-  const side = this.selectedSide(); // 👈 dependency
-
-  const filteredWards =
-    side === 'all'
-      ? wards
-      : wards.filter(w => w.isRadiantSide === (side === 'radiant') ); // adjust property name
-
-  return [...filteredWards].sort((a, b) => b.efficiencyScore - a.efficiencyScore);
-});
-
-includedMatches = computed(() => {
-  return this.apiResponse()?.includedMatches;
-})
-
-hoveredWard = signal<WardSimpleEfficiency | null>(null);
-
-isHovered(w: WardSimpleEfficiency) {
-  const hovered = this.hoveredWard();
-  return hovered?.x === w.x && hovered?.y === w.y;
-}
-
-private colors = [
-  "bg-red-500/50 border border-red-500",    
-  "bg-orange-500/50 border border-orange-500", 
-  "bg-yellow-500/50 border border-lime-500",   
-  "bg-green-500/50 border border-green-500",  
-];
-
- getEfficiencyClasses(efficiency: number): string {
-  const step = Math.min(3, Math.floor(efficiency * 4));
-  return this.colors[step];
-}
-
-activeWard = signal<WardSimpleEfficiency | null>(null);
-tooltipPos = signal<{ x: number; y: number } | null>(null);
-toggleWard(w: WardSimpleEfficiency, event: MouseEvent) {
-  event.stopPropagation();
-
-  const isSame =
-    this.activeWard()?.x === w.x &&
-    this.activeWard()?.y === w.y;
-
-  if (isSame) {
+  @HostListener('document:click')
+  onDocumentClick() {
     this.closeTooltip();
-    return;
   }
 
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-
-  let x = event.clientX + this.OFFSET;
-  let y = event.clientY + this.OFFSET;
-
-  // 🔹 Clamp horizontally
-  if (x + this.TOOLTIP_WIDTH > viewportWidth) {
-    x = event.clientX - this.TOOLTIP_WIDTH - this.OFFSET;
+  closeTooltip() {
+    this.activeWard.set(null);
+    this.tooltipPos.set(null);
   }
 
-  // 🔹 Clamp vertically
-  if (y + this.TOOLTIP_HEIGHT > viewportHeight) {
-    y = viewportHeight - this.TOOLTIP_HEIGHT - this.OFFSET;
-  }
-
-  // 🔹 Prevent negative positions
-  x = Math.max(this.OFFSET, x);
-  y = Math.max(this.OFFSET, y);
-
-  this.activeWard.set(w);
-  this.tooltipPos.set({ x, y });
-}
-
-isActive(w: WardSimpleEfficiency) {
-  const active = this.activeWard();
-  return active?.x === w.x && active?.y === w.y;
-}
-
-
-selectedSide = signal<SideFilter>('all');
-
-onSideChange(side: SideFilter) {
-  this.selectedSide.set(side);
-}
-
-
-@HostListener('document:click')
-onDocumentClick() {
-  this.closeTooltip();
-}
-
-closeTooltip() {
-  this.activeWard.set(null);
-  this.tooltipPos.set(null);
-}
-
-private readonly TOOLTIP_WIDTH = 160; // px (matches w-40)
-private readonly TOOLTIP_HEIGHT = 110; // approx
-private readonly OFFSET = 12;
-
-  // wards = input<WardSimpleMap[]>([]);
+  private readonly TOOLTIP_WIDTH = 160; // px (matches w-40)
+  private readonly TOOLTIP_HEIGHT = 110; // approx
+  private readonly OFFSET = 12;
+  /* End of stuff about tooltip 
+  */
 
   /* WARDS POSITIONS RELATED STUFF 
   * OLD (DOTAMAPCOMPONENT)
@@ -259,22 +214,6 @@ private readonly OFFSET = 12;
   }
 
   // -----------------------------
-  // CORE SCALING (PURE)
-  // -----------------------------
-  private scaleX(x: number): number {
-    const normalized =
-      (x - this.minCoord) / this.coordRange;
-    return normalized * this.mapSize;
-  }
-
-  private scaleY(y: number): number {
-    const normalized =
-      (y - this.minCoordY) / this.coordRangeY;
-    return this.mapSize - normalized * this.mapSize;
-  }
-
- 
-  // -----------------------------
   // FINAL SCALED WARDS (COMPUTED)
   // -----------------------------
   scaledWards = computed(() => {
@@ -305,5 +244,4 @@ private readonly OFFSET = 12;
   circleSize = computed(() => {
     return Math.min(this.imageWidth(), this.imageHeight()) * this.circleRatio;
   });
-
 }

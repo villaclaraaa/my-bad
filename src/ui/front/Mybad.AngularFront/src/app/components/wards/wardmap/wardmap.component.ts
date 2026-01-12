@@ -1,4 +1,4 @@
-import { Component, computed, effect, HostListener, importProvidersFrom, inject, input, Input, OnInit, output, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, input, OnInit, output, signal } from '@angular/core';
 import { NgFor, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'
 import { WardSimpleMap } from '../../../models/wardsModels';
@@ -15,18 +15,17 @@ import { ErrorComponent } from '../../../overlay/error/error.component';
   styleUrl: './wardmap.component.css'
 })
 export class WardmapComponent implements OnInit {
-  isLoading = output<boolean>();
-  isLoadingpage: boolean = true;
-  ngOnInit(): void {
-    this.isLoading.emit(this.isLoadingpage);
-  }
-
-  // wards = input<WardSimpleMap[]>([]);
-
-  accountId = input<number>(136996088);
+  
   private wardsService = inject(WardsService);
+  
+  // Loading spinner variables.
+  isLoading = output<boolean>();
 
-  matchIds: number[] = [1, 2, 3];
+  accountId = input<number>(0);
+  
+  ngOnInit(): void {
+    this.isLoading.emit(true);
+  }
 
   apiResponse = toSignal(
     toObservable(this.accountId).pipe(
@@ -34,27 +33,28 @@ export class WardmapComponent implements OnInit {
       switchMap(id =>
         this.wardsService.getWardMapCached(id).pipe(
           map(res => res),
-          tap(() => { this.isLoadingpage = false; this.isLoading.emit(this.isLoadingpage) })
-        )
-      )
-    ),
+          tap(() => this.isLoading.emit(false))
+        ))),
     { initialValue: null }
   );
 
-apiErrors = signal<string[]>([]);
+  apiErrors = signal<string[]>([]);
   wardsList = computed(() => {
-  const wards = this.apiResponse()?.observerWards ?? [];
-  return [...wards].sort((a, b) => b.amount - a.amount).slice(0, 10);
-});
+    const wards = this.apiResponse()?.observerWards ?? [];
+    return [...wards].sort((a, b) => b.amount - a.amount).slice(0, 10);
+  });
 
-hoveredWard = signal<WardSimpleMap | null>(null);
+  /* 
+   * Stuff for hovering ward and highlighting in on the map.
+   */
+  hoveredWard = signal<WardSimpleMap | null>(null);
+  isHovered(w: WardSimpleMap) {
+    const hovered = this.hoveredWard();
+    return hovered?.x === w.x && hovered?.y === w.y;
+  }
 
-isHovered(w: WardSimpleMap) {
-  const hovered = this.hoveredWard();
-  return hovered?.x === w.x && hovered?.y === w.y;
-}
-
-  /* WARDS POSITIONS STUFF
+  /* 
+  * WARDS POSITIONS STUFF
   * OLD (DOTAMAPCOMPONENT)
   */
   // -----------------------------
@@ -82,7 +82,6 @@ isHovered(w: WardSimpleMap) {
   // DERIVED SIGNALS
   // -----------------------------
   readonly coordRange = this.maxCoord - this.minCoord;
-
   readonly coordRangeY = this.maxCoordY - this.minCoordY;
 
   // -----------------------------
@@ -113,21 +112,6 @@ isHovered(w: WardSimpleMap) {
   }
 
   // -----------------------------
-  // CORE SCALING (PURE)
-  // -----------------------------
-  private scaleX(x: number): number {
-    const normalized =
-      (x - this.minCoord) / this.coordRange;
-    return normalized * this.mapSize;
-  }
-
-  private scaleY(y: number): number {
-    const normalized =
-      (y - this.minCoordY) / this.coordRangeY;
-    return this.mapSize - normalized * this.mapSize;
-  }
-
-  // -----------------------------
   // FINAL SCALED WARDS (COMPUTED)
   // -----------------------------
   scaledWards = computed(() => {
@@ -145,6 +129,8 @@ isHovered(w: WardSimpleMap) {
     });
   });
 
+  // This gets color of Ward depending on amount of wards placed.
+  // Color is retrieved from array of gradients below.
   getDotClassForHeatMap(amount: number): string {
     switch (true) {
       case amount < 2:
@@ -178,7 +164,7 @@ isHovered(w: WardSimpleMap) {
         return `${this.heatmapOverlay[9]} z-50 w-5 h-5`
     }
   }
-
+  
   private heatmapOverlay = [
     'bg-blue-500/50',
     'bg-blue-500/60',

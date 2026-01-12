@@ -1,19 +1,18 @@
 import { Component, effect, inject, signal } from '@angular/core';
-import { TabsmenuComponent } from "../tabsmenu/tabsmenu.component";
-import { NgSwitch, NgSwitchCase, NgIf, NgClass } from '@angular/common';
+import { NgSwitch, NgSwitchCase, NgIf, NgClass, NgFor } from '@angular/common';
 import { WardmapComponent } from "../wardmap/wardmap.component";
 import { FormsModule } from '@angular/forms';
 import { EfficiencymapComponent } from "../efficiencymap/efficiencymap.component";
-import { WardsService } from '../../../services/wards.service';
 import { PlayerService } from '../../../services/player.service';
 import { ErrorComponent } from '../../../overlay/error/error.component';
 import { LoadingspinnerComponent } from '../../../overlay/loadingspinner/loadingspinner.component';
+type TabKey = 'map' | 'efficiency' | 'none';
+
 
 @Component({
   selector: 'app-wards-main',
   standalone: true,
-  imports: [TabsmenuComponent,
-    NgSwitch, NgSwitchCase, NgIf,
+  imports: [NgSwitch, NgSwitchCase, NgIf, NgFor,
     WardmapComponent,
     FormsModule,
     EfficiencymapComponent,
@@ -26,10 +25,9 @@ export class WardsMainComponent {
 
   private playerService = inject(PlayerService);
 
-  constructor() {
-    effect(() => console.log("active tab", this.activeTab()));
-  };
-
+  /*
+   * Base account info section 
+   */
   avatarUrl: string = '';
   accountName = signal<string | null>(null);
   searchQuery: string = '';
@@ -87,6 +85,16 @@ export class WardsMainComponent {
     });
   }
 
-  // UI state
+  /*
+   * Tabs section
+   */
   activeTab = signal<'map' | 'efficiency' | 'none'>('none');
+
+  tabs = signal<{ key: TabKey; label: string }[]>([
+    { key: 'map', label: 'Map' },
+    { key: 'efficiency', label: 'Efficiency' }]);
+
+  selectTab(tab: TabKey) {
+    this.activeTab.set(tab);
+  }
 }
