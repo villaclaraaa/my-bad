@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Mybad.Core.DomainModels;
 using Mybad.Core.Services;
 using Mybad.Storage.DB.Entities;
 
@@ -17,36 +18,46 @@ public class ParsedMatchWardInfoService : IParsedMatchWardInfoService
 	}
 
 	/// <inheritdoc />
-	public async Task AddAsync(long matchId, long accountId, DateTime playedAtDateUtc)
+	public async Task AddAsync(ParsedMatchWardInfoModel model)
 	{
 		await _dbContext.ParsedMatchWardInfos.AddAsync(new ParsedMatchWardInfo
 		{
-			MatchId = matchId,
-			AccountId = accountId,
-			PlayedAtDateUtc = playedAtDateUtc
+			MatchId = model.MatchId,
+			AccountId = model.AccountId,
+			IsRadiantPlayer = model.IsRadiantPlayer,
+			IsWonMatch = model.IsWonMatch,
+			PlayedAtDateUtc = model.PlayedAtDateUtc,
+			HeroId = model.HeroId,
 		});
 		await _dbContext.SaveChangesAsync();
 	}
 
 	/// <inheritdoc />
-	public async Task AddRangeAsync(IEnumerable<(long matchId, long accountId, DateTime playedAtDateUtc)> list)
+	public async Task AddRangeAsync(IEnumerable<ParsedMatchWardInfoModel> list)
 	{
 		await _dbContext.AddRangeAsync(list.Select(x => new ParsedMatchWardInfo
 		{
-			MatchId = x.matchId,
-			AccountId = x.accountId,
-			PlayedAtDateUtc = x.playedAtDateUtc
+			MatchId = x.MatchId,
+			AccountId = x.AccountId,
+			IsRadiantPlayer = x.IsRadiantPlayer,
+			IsWonMatch = x.IsWonMatch,
+			PlayedAtDateUtc = x.PlayedAtDateUtc,
+			HeroId = x.HeroId
 		}));
 		await _dbContext.SaveChangesAsync();
 	}
 
 	/// <inheritdoc />
-	public async Task<IEnumerable<long>> GetParsedMatchesForAccountAsync(long accountId) =>
-		await _dbContext.ParsedMatchWardInfos.Where(x => x.AccountId == accountId).Select(x => x.MatchId).ToListAsync();
+	public async Task<IEnumerable<ParsedMatchWardInfoModel>> GetParsedMatchesForAccountAsync(long accountId) =>
+		await _dbContext.ParsedMatchWardInfos
+			.Where(x => x.AccountId == accountId)
+			.Select(x => new ParsedMatchWardInfoModel(x.MatchId, x.AccountId, x.IsRadiantPlayer, x.IsWonMatch, x.PlayedAtDateUtc, x.HeroId))
+			.ToListAsync();
 
 	/// <inheritdoc />
 	public async Task<bool> IsMatchParsedAsync(long matchId, long accountId) =>
-		await _dbContext.ParsedMatchWardInfos.AnyAsync(x => x.MatchId == matchId && x.AccountId == accountId);
+		await _dbContext.ParsedMatchWardInfos
+			.AnyAsync(x => x.MatchId == matchId && x.AccountId == accountId);
 
 	/// <inheritdoc />
 	public async Task RemoveAsync(long matchId, long accountId)

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mybad.Storage.DB;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Mybad.Storage.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251229130305_AddedPlayerInfoInParsedMatchWardInfo")]
+    partial class AddedPlayerInfoInParsedMatchWardInfo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,9 +66,6 @@ namespace Mybad.Storage.Migrations
 
                     b.Property<long>("AccountId")
                         .HasColumnType("bigint");
-
-                    b.Property<int>("HeroId")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("IsRadiantPlayer")
                         .HasColumnType("boolean");
@@ -132,17 +132,6 @@ namespace Mybad.Storage.Migrations
                     b.HasBaseType("Mybad.Storage.DB.Entities.HeroMatchupEntity");
 
                     b.ToTable("matchup_enemies", (string)null);
-                });
-
-            modelBuilder.Entity("Mybad.Storage.DB.Entities.WardEntity", b =>
-                {
-                    b.HasOne("Mybad.Storage.DB.Entities.ParsedMatchWardInfo", "ParsedMatch")
-                        .WithMany()
-                        .HasForeignKey("MatchId", "AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ParsedMatch");
                 });
 #pragma warning restore 612, 618
         }

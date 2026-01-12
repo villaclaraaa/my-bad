@@ -27,6 +27,7 @@ internal static class WardMapperExtensions
 			MatchId = ward.MatchId,
 			Amount = ward.Amount,
 			TimeLivedSeconds = ward.TimeLivedSeconds,
-			WasDestroyed = ward.WasDestroyed
+			WasDestroyed = ward.WasDestroyed,
+			IsRadiantSide = ward.ParsedMatch.IsRadiantPlayer
 		};
 }

@@ -17,4 +17,7 @@ public class WardEntity
 	public bool WasDestroyed { get; set; }
 
 	public DateTime CreatedDate { get; set; }
+
+
+	public ParsedMatchWardInfo ParsedMatch { get; set; } = default!;
 }

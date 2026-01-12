@@ -14,6 +14,11 @@ public interface IWardService
 	/// <returns>Task representing asynchronous operation.</returns>
 	Task AddAsync(WardModel ward);
 
+	/// <summary>
+	/// Adds list of wards entries to storage.
+	/// </summary>
+	/// <param name="wards"><see cref="IEnumerable{T}"/> of <see cref="WardModel"/> objects.</param>
+	/// <returns>Task representing asynchronous operation.</returns>
 	Task AddRangeAsync(IEnumerable<WardModel> wards);
 
 	/// <summary>

@@ -1,52 +1,100 @@
-import { Component } from '@angular/core';
-import { TabsmenuComponent } from "../tabsmenu/tabsmenu.component";
-import { NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
-import { DotamapComponent } from "../dotamap/dotamap.component";
+import { Component, effect, inject, signal } from '@angular/core';
+import { NgSwitch, NgSwitchCase, NgIf, NgClass, NgFor } from '@angular/common';
 import { WardmapComponent } from "../wardmap/wardmap.component";
 import { FormsModule } from '@angular/forms';
 import { EfficiencymapComponent } from "../efficiencymap/efficiencymap.component";
+import { PlayerService } from '../../../services/player.service';
+import { ErrorComponent } from '../../../overlay/error/error.component';
+import { LoadingspinnerComponent } from '../../../overlay/loadingspinner/loadingspinner.component';
+type TabKey = 'map' | 'efficiency' | 'none';
+
 
 @Component({
   selector: 'app-wards-main',
   standalone: true,
-  imports: [TabsmenuComponent, NgIf, NgSwitch, NgSwitchCase, DotamapComponent, WardmapComponent, FormsModule, EfficiencymapComponent],
+  imports: [NgSwitch, NgSwitchCase, NgIf, NgFor,
+    WardmapComponent,
+    FormsModule,
+    EfficiencymapComponent,
+    ErrorComponent,
+    LoadingspinnerComponent, NgClass],
   templateUrl: './wards-main.component.html',
   styleUrl: './wards-main.component.css'
 })
 export class WardsMainComponent {
-  accountName: any;
-  searchQuery: any;
+
+  private playerService = inject(PlayerService);
+
+  /*
+   * Base account info section 
+   */
+  avatarUrl: string = '';
+  accountName = signal<string | null>(null);
+  searchQuery: string = '';
+  accountLinkODota: string = "https://www.opendota.com/players/";
+  accountId = signal<number | null>(null);
+
+  apiErrors = signal<string[]>([]);
+  isLoading = signal(false);
   searchAccount() {
-    throw new Error('Method not implemented.');
+    const accountId1 = Number(this.searchQuery);
+
+    if (Number.isNaN(accountId1)) {
+      this.accountName.set('account not found');
+      this.avatarUrl = '';
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.playerService.getBasePlayerInfo(accountId1).subscribe({
+      next: (data) => {
+
+        if (data.errors.length > 0) {
+          this.apiErrors.set(data.errors);
+          this.isLoading.set(false);
+          this.activeTab.set('none');
+          this.accountName.set('account not found');
+
+          this.avatarUrl = '';
+          return;
+        }
+        if (!data.playerInfo) {
+          this.accountName.set('account not found');
+
+          this.avatarUrl = '';
+          this.isLoading.set(false);
+          this.activeTab.set('none');
+          this.apiErrors.set(['api did not respond.']);
+          return;
+        }
+
+        this.apiErrors.set([]);
+        this.accountName.set(data.playerInfo.personaName);
+        this.avatarUrl = data.playerInfo.avatarMediumUrl;
+        this.activeTab.set('map');
+        this.accountId.set(accountId1);
+        this.accountLinkODota += `${this.accountId()}`;
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.accountName.set('account not found');
+
+        this.avatarUrl = '';
+        this.isLoading.set(false);
+      }
+    });
   }
 
-  activeTab = 'map';
+  /*
+   * Tabs section
+   */
+  activeTab = signal<'map' | 'efficiency' | 'none'>('none');
 
-  allWards: { x: number; y: number }[] = [
-    { x: 90, y: 146 },
-    { x: 122, y: 122 },
-    { x: 113, y: 151 },
-    { x: 120, y: 65 },
-    { x: 99, y: 88 },
-    { x: 94, y: 120 },
-    { x: 160, y: 120 },
-    { x: 139, y: 91 },
-    { x: 150, y: 116 },
-  ];    // your full list
-  efficiencyWards: { x: number; y: number }[] = [
-    { x: 90, y: 146 },
-    { x: 122, y: 122 },
-    { x: 113, y: 151 },
-    { x: 120, y: 65 },
-    { x: 99, y: 88 },
-    { x: 94, y: 120 },
-  ]; // wards highlighted for efficiency tab
+  tabs = signal<{ key: TabKey; label: string }[]>([
+    { key: 'map', label: 'Map' },
+    { key: 'efficiency', label: 'Efficiency' }]);
 
-  get wardsForCurrentTab() {
-    console.log(this.activeTab);
-    return this.allWards;
-    // return this.activeTab === 'map'
-    //   ? this.allWards
-    //   : this.efficiencyWards;
+  selectTab(tab: TabKey) {
+    this.activeTab.set(tab);
   }
 }

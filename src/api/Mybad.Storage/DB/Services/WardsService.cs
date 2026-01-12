@@ -20,7 +20,7 @@ public class WardsService : IWardService
 	/// <inheritdoc/>
 	public async Task AddAsync(WardModel ward)
 	{
-		int deviation = 2;  // this is approximate value of units where we can consider wards placed in same position
+		int deviation = 4;  // this is approximate value of units where we can consider wards placed in same position
 
 		// check if ward in similar position already added
 		var existingWard = _dbContext.Wards.FirstOrDefault(x =>
@@ -46,6 +46,7 @@ public class WardsService : IWardService
 		await _dbContext.SaveChangesAsync();
 	}
 
+	/// <inheritdoc />
 	public async Task AddRangeAsync(IEnumerable<WardModel> wards)
 	{
 		var entities = wards.Select(x => x.MapToEntity());
@@ -60,7 +61,7 @@ public class WardsService : IWardService
 
 	/// <inheritdoc/>
 	public async Task<IEnumerable<WardModel>> GetAllForAccountAsync(long accountId) =>
-		await _dbContext.Wards.Where(x => x.AccountId == accountId)
+		await _dbContext.Wards.Include(x => x.ParsedMatch).Where(x => x.AccountId == accountId)
 			.Select(x => x.MapToModel()).ToListAsync();
 
 	/// <inheritdoc/>

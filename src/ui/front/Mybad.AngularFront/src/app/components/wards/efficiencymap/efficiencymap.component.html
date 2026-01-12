@@ -1,61 +1,160 @@
-<!-- <div class="map-container">
-  <img class="map-image" src="assets/img/detailed_738.jpg" />
+<div class="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-4 md:px-20 md:pt-4 md:pb-0 py-4 w-full h-full">
 
-  <!-- Ward markers -->
-  <!-- <div
-    *ngFor="let w of wards"
-    class="ward"
-    [style.left]="getLeft(w.x)"
-    [style.top]="getTop(w.y)">
-  </div> -->
+  <!-- Left column Map -->
+  <div class="flex justify-center">
+    <div class="w-full max-w-xl px-4">
+      <div class="relative inline-block w-full max-w-[600px] aspect-square border rounded-xl overflow-hidden shadow">
+        <!-- Map Image -->
+        <img #mapImg class="absolute inset-0 w-full h-full object-cover" src="assets/img/detailed_738.jpg"
+          (load)="onImageLoad(mapImg)" />
+        <!-- Circles of wards positions. -->
+        <div *ngFor="let w of scaledWards()" class="absolute" [style.left.px]="w.left" [style.top.px]="w.top">
+          <div class="relative flex items-center justify-center rounded-full" [style.width.px]="w.size"
+            [style.height.px]="w.size" style="transform: translate(-50%, -50%)"
+            (click)="$event.stopPropagation(); toggleWard(w, $event)">
+            <div class="absolute inset-0 rounded-full border-2 opacity-80  hover:scale-105 hover:cursor-pointer
+            transition-transform duration-200" [ngClass]="getEfficiencyClasses(w.efficiencyScore)"></div>
+            <img src="assets/img/obs.png" class="relative z-10 w-4 h-3 pointer-events-none" />
+          </div>
+        </div>
 
- <!-- map.component.html -->
-  <!-- <div *ngFor="let w of wards" -->
-       <!-- class="ward"
-       [ngStyle]="{
-    left: scaleX(w.x) + 'px',
-    top: scaleY(w.y) + 'px'
-  }">
-  </div>
-</div> -->
-
-<div class="flex flex-col md:flex-row w-full h-full p-4 gap-4">
-
-  <!-- Left: Wards Efficiency List -->
-  <div class="flex-1 flex flex-col gap-6 text-white">
-    <!-- Wards by Efficiency -->
-    <div class="bg-slate-800 rounded-xl shadow p-4">
-      <h2 class="text-lg font-semibold mb-3 text-white">Wards by Efficiency</h2>
-      <ul class="space-y-2">
-        <li *ngFor="let w of sortedWards" class="flex justify-between bg-slate-600 p-2 rounded-lg">
-          <span class="text-white">Ward {{ w.id }}</span>
-          <span class="font-semibold">{{ w.efficiency }}</span>
-        </li>
-      </ul>
-    </div>
-
-  </div>
-  <!-- Right: Details panel -->
-  <div class="flex-1 flex flex-col gap-6 text-white">
-
-    <!-- Match IDs list -->
-    <div class="bg-slate-800 rounded-xl shadow p-4">
-      <h2 class="text-lg font-semibold mb-3 text-white">Match IDs</h2>
-      <ul class="space-y-2">
-        <li *ngFor="let id of matchIds" class="flex items-center justify-between bg-slate-600 p-2 rounded-lg">
-          <span class="text-white">{{ id }}</span>
-          <button (click)="removeMatchId(id)" class="text-red-600 font-semibold">Delete</button>
-        </li>
-      </ul>
-
-      <!-- Add Match ID -->
-      <div class="mt-4 flex items-center gap-2">
-        <input type="text" [(ngModel)]="newMatchId" placeholder="Add match ID" class="flex-1 border rounded-lg p-2" />
-        <button (click)="addMatchId()" class="bg-blue-600 text-white px-3 py-2 rounded-lg">Add</button>
+        <!-- Tooltip with absolute position about ward. -->
+        <div *ngIf="activeWard() && tooltipPos()" class="fixed z-[9999] w-40
+         rounded-lg bg-slate-900 text-white text-xs
+         shadow-lg border border-slate-700 px-3 py-2" [style.left.px]="tooltipPos()!.x + 12"
+          [style.top.px]="tooltipPos()!.y + 12">
+          <div class="font-semibold mb-1">
+            Ward [{{ activeWard()!.x }}, {{ activeWard()!.y }}]
+          </div>
+          <div class="flex justify-between">
+            <span>Efficiency</span>
+            <span>{{ activeWard()!.efficiencyScore}}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Avg lived</span>
+            <span>{{ activeWard()!.averageTimeLived }}s</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Amount</span>
+            <span class="font-semibold">{{ activeWard()!.amount }}</span>
+          </div>
+        </div>
       </div>
     </div>
+  </div>
 
+  <!-- Right Column -->
+  <div class="gap-6">
+
+    <div class="inline-block w-fit">
+      <span class="small block text-center text-gray-400">Only parsed matches from latest 20 (and already added here) in
+        OpenDota are counted in this list.<br />
+        Please parse more matches in OpenDota if you want them to be included.
+      </span>
+      <!-- Side filter -->
+      <div class="flex justify-center gap-4 my-4">
+        <label class="cursor-pointer">
+          <input type="radio" name="side" class="peer hidden" [checked]="selectedSide() === 'all'"
+            (change)="onSideChange('all')" />
+          <span class="px-4 py-2 rounded-full border text-sm font-medium
+             border-gray-300 text-gray-100
+             peer-checked:bg-blue-600
+             peer-checked:text-white
+             peer-checked:border-blue-600
+             hover:bg-gray-100 hover:text-gray-600
+             transition">
+            All
+          </span>
+        </label>
+        <label class="cursor-pointer">
+          <input type="radio" name="side" class="peer hidden" [checked]="selectedSide() === 'radiant'"
+            (change)="onSideChange('radiant')" />
+          <span class="px-4 py-2 rounded-full border text-sm font-medium
+             border-gray-300 text-gray-100
+             peer-checked:bg-green-500/20 
+             peer-checked:text-green-300
+             peer-checked:border-green-950
+             hover:bg-gray-100 hover:text-gray-600
+             transition">
+            Radiant
+          </span>
+        </label>
+        <label class="cursor-pointer">
+          <input type="radio" name="side" class="peer hidden" [checked]="selectedSide() === 'dire'"
+            (change)="onSideChange('dire')" />
+          <span class="px-4 py-2 rounded-full border text-sm font-medium
+             border-gray-300 text-gray-100
+             peer-checked:bg-orange-500/20
+             peer-checked:text-orange-300
+             peer-checked:border-red-950
+             hover:bg-gray-100 hover:text-gray-600
+             transition">
+            Dire
+          </span>
+        </label>
+      </div>
+
+      <!-- Match IDs list -->
+      <div class="bg-slate-800/50 rounded-xl shadow p-4 m-3">
+        <h2 class="text-lg font-semibold mb-3 text-white text-center">Parsed matches</h2>
+        <ul class="space-y-1 max-h-[46vh] overflow-y-auto">
+          <li *ngFor="let match of matchIds()" class="bg-slate-700/60 hover:bg-slate-600 transition
+             rounded-md p-2
+             grid md:grid-cols-3 grid-cols-[1.6fr_0.7fr_1fr] items-center">
+
+            <!-- Hero -->
+            <div class="min-w-0">
+              <div class="text-white font-medium truncate" title="{{ match.heroName }}">
+                {{ match.heroName }}
+              </div>
+
+              <!-- Match ID -->
+              <a class="text-xs text-slate-400 hover:text-slate-200 truncate flex items-center gap-1"
+                href="https://www.opendota.com/matches/{{match.matchId}}" target="_blank"
+                title="Open match in Opendota.">
+                <span>#{{ match.matchId }}</span>
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="size-4">
+                  <path d="M16.3891 8.11096L8.61091 15.8891" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M16.3891 8.11096L16.7426 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                  <path d="M16.3891 8.11096L12.5 7.75741" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </a>
+            </div>
+
+            <!-- Result + Side -->
+            <div class="flex flex-col items-center leading-tight">
+              <!-- WIN / LOSS -->
+              <div class="font-semibold" [ngClass]="match.isWonMatch ? 'text-green-400' : 'text-red-400'">
+                {{ match.isWonMatch ? 'WIN' : 'LOSS' }}
+              </div>
+
+              <!-- Side -->
+              <span class="mt-0.5 text-[10px] px-2 py-0.5 rounded-full" [ngClass]="match.isRadiantPlayer
+              ? 'bg-green-500/20 text-green-300'
+              : 'bg-orange-500/20 text-orange-300'">
+                {{ match.isRadiantPlayer ? 'Radiant' : 'Dire' }}
+              </span>
+            </div>
+
+            <!-- Date -->
+            <div class="text-xs text-slate-300 justify-self-end whitespace-nowrap" title="{{ match.playedAtDateUtc }}">
+              <!-- on desktop full date -->
+              <span class="hidden md:inline">
+                {{ match.playedAtDateUtc | date:'dd-MM-yyyy HH:mm' }} UTC
+              </span>
+              <!-- on mobile shorter date -->
+              <span class="inline md:hidden">
+                {{ match.playedAtDateUtc | date:'dd-MM-yyyy' }}
+              </span>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
-  
-</div>
+  </div>
 
+  <app-error [errorMessages]="apiErrors()"></app-error>
+</div>

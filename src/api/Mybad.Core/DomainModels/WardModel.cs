@@ -48,4 +48,9 @@ public class WardModel : IComparable<WardModel>
 	/// Gets or sets a value indicating whether the ward was destroyed.
 	/// </summary>
 	public bool WasDestroyed { get; set; }
+
+	/// <summary>
+	/// Gets or sets a value indicating whether the team is on the Radiant side.
+	/// </summary>
+	public bool IsRadiantSide { get; set; }
 }

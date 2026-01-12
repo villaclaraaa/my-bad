@@ -1,4 +1,6 @@
-﻿namespace Mybad.Core.Services;
+﻿using Mybad.Core.DomainModels;
+
+namespace Mybad.Core.Services;
 
 /// <summary>
 /// Contracts for service that manages parsed match ward info.
@@ -12,14 +14,14 @@ public interface IParsedMatchWardInfoService
 	/// <param name="accountId">Account id.</param>
 	/// <param name="playedAtDateUtc">DateTime when match played in Utc.</param>
 	/// <returns>Task representing asynchronous operation.</returns>
-	Task AddAsync(long matchId, long accountId, DateTime playedAtDateUtc);
+	Task AddAsync(ParsedMatchWardInfoModel model);
 
 	/// <summary>
 	/// Adds a list of parsed match records.
 	/// </summary>
 	/// <param name="list">IEnumerable of match records. Consists of (matchId, accountId, DateTime).</param>
 	/// <returns>Task representing asynchronous operation.</returns>
-	Task AddRangeAsync(IEnumerable<(long matchId, long accountId, DateTime playedAtDateUtc)> list);
+	Task AddRangeAsync(IEnumerable<ParsedMatchWardInfoModel> list);
 
 	/// <summary>
 	/// Deletes the parsed match record.
@@ -43,6 +45,6 @@ public interface IParsedMatchWardInfoService
 	/// </summary>
 	/// <param name="accountId">Account id.</param>
 	/// <returns>Task representing asynchronous operation.
-	/// Task result contains <see cref="IEnumerable{T}"/> of matchesIds.</returns>
-	Task<IEnumerable<long>> GetParsedMatchesForAccountAsync(long accountId);
+	/// Task result contains <see cref="IEnumerable{T}"/> of <see cref="ParsedMatchWardInfoModel"/> objects.</returns>
+	Task<IEnumerable<ParsedMatchWardInfoModel>> GetParsedMatchesForAccountAsync(long accountId);
 }
