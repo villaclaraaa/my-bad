@@ -31,6 +31,11 @@ export class MatchupsComponent {
   bestComputed = signal<HeroMatchup[]>([]);
   bestVersus = signal<HeroMatchup[]>([]);
 
+
+  isLoadingAlly = signal<boolean>(false);
+  isLoadingVersus = signal<boolean>(false);
+  isLoadingComputed = signal<boolean>(false);
+
   constructor(){
     this.heroService.getHeroes().subscribe((data: Hero[]) => {
       this.heroes.set(data);
@@ -53,6 +58,11 @@ export class MatchupsComponent {
 
   getHeroImg(url: string): string {
     return `https://cdn.cloudflare.steamstatic.com${url}`;
+  }
+
+  getHeroImgById(heroId: number): string {
+    const hero = this.heroes().find(h => h.id === heroId);
+    return hero ? this.getHeroImg(hero.img) : '';
   }
 
   openPicker(side: 'my' | 'enemy') {
@@ -94,6 +104,10 @@ export class MatchupsComponent {
     const allyIds = this.myTeam().map(h => h.id);
     const enemyIds = this.enemyTeam().map(h => h.id);
 
+    // Convert empty arrays to null for API
+    const allyIdsOrNull = allyIds.length > 0 ? allyIds : null;
+    const enemyIdsOrNull = enemyIds.length > 0 ? enemyIds : null;
+
     if (allyIds.length === 0 && enemyIds.length === 0) {
         this.bestAlly.set([]);
         this.bestComputed.set([]);
@@ -103,8 +117,10 @@ export class MatchupsComponent {
 
     // 1. Best Ally (only if we have allies)
     if (allyIds.length > 0) {
-        this.heroService.findBestHeroes(allyIds, null).subscribe(res => {
+        this.isLoadingAlly.set(true);
+        this.heroService.findBestHeroes(allyIdsOrNull, null).subscribe(res => {
             this.bestAlly.set(res.matchup.slice(0, 10));
+            this.isLoadingAlly.set(false);
         });
     } else {
         this.bestAlly.set([]);
@@ -112,8 +128,10 @@ export class MatchupsComponent {
 
     // 2. Best Versus (only if we have enemies)
     if (enemyIds.length > 0) {
-        this.heroService.findBestHeroes(null, enemyIds).subscribe(res => {
+        this.isLoadingVersus.set(true);
+        this.heroService.findBestHeroes(null, enemyIdsOrNull).subscribe(res => {
             this.bestVersus.set(res.matchup.slice(0, 10));
+            this.isLoadingVersus.set(false);
         });
     } else {
         this.bestVersus.set([]);
@@ -121,8 +139,10 @@ export class MatchupsComponent {
 
     // 3. Best Computed (Combined)
     if (allyIds.length > 0 || enemyIds.length > 0) {
-        this.heroService.findBestHeroes(allyIds, enemyIds).subscribe(res => {
+        this.isLoadingComputed.set(true);
+        this.heroService.findBestHeroes(allyIdsOrNull, enemyIdsOrNull).subscribe(res => {
             this.bestComputed.set(res.matchup.slice(0, 10));
+            this.isLoadingComputed.set(false);
         });
     } else {
         this.bestComputed.set([]);
