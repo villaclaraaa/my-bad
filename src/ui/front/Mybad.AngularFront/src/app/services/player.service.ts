@@ -15,7 +15,7 @@ export class PlayerService {
   });
 
   private dataUrl = 'assets/json/heroes.json';
-  private apiUrl = 'http://localhost:5138/api/players';
+  private apiUrl = '/api/players';
 
   getBasePlayerInfo(accId: number): Observable<Player> {
     const url = `${this.apiUrl}/baseinfo?accountId=${accId}`;

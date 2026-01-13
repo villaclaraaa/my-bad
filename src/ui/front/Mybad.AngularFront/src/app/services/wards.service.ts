@@ -10,7 +10,7 @@ export class WardsService {
   // Modern Angular 18: inject HttpClient instead of constructor injection
   private http = inject(HttpClient);
 
-  private readonly basePath = 'http://localhost:5138/api/wards';
+  private readonly basePath = '/api/wards';
 
   private readonly defaultHeaders = new HttpHeaders({
     'Content-Type': 'application/json',

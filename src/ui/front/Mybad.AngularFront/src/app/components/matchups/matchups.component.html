@@ -40,7 +40,7 @@
       <h3>Best with allies</h3>
 
       <div *ngIf="isLoadingAlly()" class="loader-container">
-        <div class="spinner"></div>
+        <app-loadingspinner [isLoading]="isLoadingAlly()"></app-loadingspinner>
         <span>Loading...</span>
       </div>
 
@@ -58,7 +58,7 @@
       <h3>Best computed</h3>
 
       <div *ngIf="isLoadingComputed()" class="loader-container">
-        <div class="spinner"></div>
+        <app-loadingspinner [isLoading]="isLoadingComputed()"></app-loadingspinner>
         <span>Loading...</span>
       </div>
 
@@ -76,7 +76,7 @@
 
       <h3>Best vs enemies</h3>
       <div *ngIf="isLoadingVersus()" class="loader-container">
-        <div class="spinner"></div>
+        <app-loadingspinner [isLoading]="isLoadingVersus()"></app-loadingspinner>
         <span>Loading...</span>
       </div>
 

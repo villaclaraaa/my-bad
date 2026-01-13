@@ -10,7 +10,7 @@ export class HeroService {
  private http = inject(HttpClient);
 
  private dataUrl = 'assets/json/heroes.json';
- private apiUrl = 'http://localhost:63512/api/matchups/find';
+ private apiUrl = '/api/matchups/find';
 
  getHeroes(): Observable<Hero[]> {
     return this.http.get<any[]>(this.dataUrl).pipe(

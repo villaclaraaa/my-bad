@@ -4,11 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { HeroService} from '../../services/hero.service';
 import { Hero } from '../../models/hero.interface';
 import { HeroMatchup } from '../../models/matchup.interface';
+import { LoadingspinnerComponent } from "../../overlay/loadingspinner/loadingspinner.component";
+import { skip } from 'rxjs';
 
 @Component({
   selector: 'app-matchups',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LoadingspinnerComponent],
   templateUrl: './matchups.component.html',
   styleUrls: ['./matchups.component.css']
 })
@@ -78,6 +80,7 @@ export class MatchupsComponent {
 
   selectHero(hero: Hero) {
     const side = this.pickingSide();
+    let skipAllies: boolean = false;
     if (side === 'my') {
       if (this.myTeam().length < 5 && !this.myTeam().find(h => h.id === hero.id)) {
         this.myTeam.update(team => [...team, hero]);
@@ -85,22 +88,25 @@ export class MatchupsComponent {
     } else if (side === 'enemy') {
       if (this.enemyTeam().length < 5 && !this.enemyTeam().find(h => h.id === hero.id)) {
         this.enemyTeam.update(team => [...team, hero]);
+        skipAllies = true;
       }
     }
     this.closePicker();
-    this.calculateMatchups();
+    this.calculateMatchups(skipAllies, !skipAllies);
   }
 
   removeHero(hero: Hero, side: 'my' | 'enemy') {
+    let skipAllies = false;
     if (side === 'my') {
       this.myTeam.update(team => team.filter(h => h.id !== hero.id));
     } else {
       this.enemyTeam.update(team => team.filter(h => h.id !== hero.id));
+      skipAllies = true;
     }
-    this.calculateMatchups();
+    this.calculateMatchups(skipAllies, !skipAllies);
   }
 
-  calculateMatchups() {
+  calculateMatchups(skipAllies: boolean, skipEnemies: boolean) {
     const allyIds = this.myTeam().map(h => h.id);
     const enemyIds = this.enemyTeam().map(h => h.id);
 
@@ -117,22 +123,30 @@ export class MatchupsComponent {
 
     // 1. Best Ally (only if we have allies)
     if (allyIds.length > 0) {
-        this.isLoadingAlly.set(true);
-        this.heroService.findBestHeroes(allyIdsOrNull, null).subscribe(res => {
+        if (!skipAllies)
+        {
+
+          this.isLoadingAlly.set(true);
+          this.heroService.findBestHeroes(allyIdsOrNull, null).subscribe(res => {
             this.bestAlly.set(res.matchup.slice(0, 10));
             this.isLoadingAlly.set(false);
-        });
+          });
+        }
     } else {
         this.bestAlly.set([]);
     }
 
     // 2. Best Versus (only if we have enemies)
     if (enemyIds.length > 0) {
-        this.isLoadingVersus.set(true);
-        this.heroService.findBestHeroes(null, enemyIdsOrNull).subscribe(res => {
+        if (!skipEnemies)
+        {
+
+          this.isLoadingVersus.set(true);
+          this.heroService.findBestHeroes(null, enemyIdsOrNull).subscribe(res => {
             this.bestVersus.set(res.matchup.slice(0, 10));
             this.isLoadingVersus.set(false);
-        });
+          });
+        }
     } else {
         this.bestVersus.set([]);
     }
