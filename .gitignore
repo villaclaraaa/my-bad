@@ -192,6 +192,9 @@ publish/
 # in these scripts will be unencrypted
 PublishScripts/
 
+# Service Dependencies of publish profiles
+ServiceDependencies/
+
 # NuGet Packages
 *.nupkg
 # NuGet Symbol Packages
