@@ -22,19 +22,19 @@ builder.Services.AddSwaggerGen();
 //CORS (Added by Andrew due to a problem sending a request to Api)
 builder.Services.AddCors(options =>
 {
-	options.AddPolicy("AllowAngularApp", policy =>
-	{
-		policy.WithOrigins("http://localhost:63512") // Angular app URL
-			  .AllowAnyHeader()
-			  .AllowAnyMethod()
-			  .AllowCredentials();
-	});
+    options.AddPolicy("AllowAngularApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:63512") // Angular app URL
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
 // Db registration
 var con = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseNpgsql(con));
+    options.UseNpgsql(con));
 
 // Core services + Db implementations
 builder.Services.AddScoped<IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>, CoreHeroMatchupProvider>();
@@ -43,7 +43,7 @@ builder.Services.AddScoped<IWardService, WardsService>();
 builder.Services.AddScoped<IMatchupService, MatchupService>();
 builder.Services.AddScoped<ICheckedMatchesService, CheckedMatchesService>();
 builder.Services.AddScoped<IParsedMatchWardInfoService, ParsedMatchWardInfoService>();
-
+builder.Services.AddScoped<IHeroMatchesService, HeroMatchesService>();
 // ODota Services registration including httpclient and info providers.
 builder.Services.AddODotaServices();
 
@@ -52,7 +52,7 @@ builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
 
 // Setup API only DbContext (such as TgBot etc maybe)
 builder.Services.AddDbContext<ApiDbContext>(options =>
-	options.UseNpgsql(con));
+    options.UseNpgsql(con));
 
 // Setup TgBot News
 var bot_token = builder.Configuration["BotSettings:Tg_BotToken"]!;
@@ -66,8 +66,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 //Here as well
@@ -80,12 +80,12 @@ app.MapMatchupEndpoints();
 app.MapPlayerEndpoints();
 
 app.MapGet("/test", () => "xarosh")
-	.AllowAnonymous();
+    .AllowAnonymous();
 
 app.MapGet("/cache", async (ODotaHeroMatchupCacher cacher) =>
 {
-	await cacher.UpdateHeroMatchupsDatabase(75);
-	return "success";
+    await cacher.UpdateHeroMatchupsDatabase(75);
+    return "success";
 });
 
 app.MapTgBotEndpoints(webhookURL);

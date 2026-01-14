@@ -252,8 +252,8 @@
 
 .close-btn {
   position: absolute;
-  top: 10px;
-  right: 20px;
+  top: 20px;
+  right: 25px;
   background: none;
   border: none;
   color: #fff;
@@ -285,6 +285,7 @@
   padding: 8px 12px;
   font-size: 1rem;
   width: 250px;
+  margin-right: 40px;
 }
 
 /* Mobile: Adjust picker header */
@@ -346,8 +347,8 @@
 }
 
 .attr-column .attr-header img {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
 }
 
 .hero-list {

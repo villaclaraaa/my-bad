@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HeroService} from '../../services/hero.service';
+import { HeroService } from '../../services/hero.service';
 import { Hero } from '../../models/hero.interface';
 import { HeroMatchup } from '../../models/matchup.interface';
 import { LoadingspinnerComponent } from "../../overlay/loadingspinner/loadingspinner.component";
@@ -15,8 +15,8 @@ import { skip } from 'rxjs';
   styleUrls: ['./matchups.component.css']
 })
 export class MatchupsComponent {
-  private heroService = inject(HeroService); 
-  
+  private heroService = inject(HeroService);
+
   heroes = signal<Hero[]>([]);
   searchText = signal<string>('');
 
@@ -38,7 +38,7 @@ export class MatchupsComponent {
   isLoadingVersus = signal<boolean>(false);
   isLoadingComputed = signal<boolean>(false);
 
-  constructor(){
+  constructor() {
     this.heroService.getHeroes().subscribe((data: Hero[]) => {
       this.heroes.set(data);
     });
@@ -48,8 +48,9 @@ export class MatchupsComponent {
     const text = this.searchText().toLowerCase();
     const all = this.heroes();
 
-    const filtered = all.filter(hero => hero.localized_name.toLowerCase().includes(text));
-    
+    const filtered = all.filter(hero => hero.localized_name.toLowerCase().includes(text))
+      .filter(hero => !this.myTeam().find(h => h.id === hero.id) && !this.enemyTeam().find(h => h.id === hero.id));
+
     return {
       str: filtered.filter(h => h.primary_attr === 'str'),
       agi: filtered.filter(h => h.primary_attr === 'agi'),
@@ -115,51 +116,55 @@ export class MatchupsComponent {
     const enemyIdsOrNull = enemyIds.length > 0 ? enemyIds : null;
 
     if (allyIds.length === 0 && enemyIds.length === 0) {
-        this.bestAlly.set([]);
-        this.bestComputed.set([]);
-        this.bestVersus.set([]);
-        return;
+      this.bestAlly.set([]);
+      this.bestComputed.set([]);
+      this.bestVersus.set([]);
+      return;
     }
 
     // 1. Best Ally (only if we have allies)
     if (allyIds.length > 0) {
-        if (!skipAllies)
-        {
+      if (!skipAllies) {
 
+        if (!this.isLoadingAlly()) {
           this.isLoadingAlly.set(true);
           this.heroService.findBestHeroes(allyIdsOrNull, null).subscribe(res => {
             this.bestAlly.set(res.matchup.slice(0, 10));
             this.isLoadingAlly.set(false);
           });
         }
+      }
     } else {
-        this.bestAlly.set([]);
+      this.bestAlly.set([]);
     }
 
     // 2. Best Versus (only if we have enemies)
     if (enemyIds.length > 0) {
-        if (!skipEnemies)
-        {
-
+      if (!skipEnemies) {
+        if (!this.isLoadingVersus()) {
           this.isLoadingVersus.set(true);
           this.heroService.findBestHeroes(null, enemyIdsOrNull).subscribe(res => {
             this.bestVersus.set(res.matchup.slice(0, 10));
             this.isLoadingVersus.set(false);
           });
         }
+      }
     } else {
-        this.bestVersus.set([]);
+      this.bestVersus.set([]);
     }
 
     // 3. Best Computed (Combined)
     if (allyIds.length > 0 || enemyIds.length > 0) {
+      if (!this.isLoadingComputed()) {
         this.isLoadingComputed.set(true);
         this.heroService.findBestHeroes(allyIdsOrNull, enemyIdsOrNull).subscribe(res => {
-            this.bestComputed.set(res.matchup.slice(0, 10));
-            this.isLoadingComputed.set(false);
+          this.bestComputed.set(res.matchup.slice(0, 10));
+          this.isLoadingComputed.set(false);
         });
+      }
     } else {
-        this.bestComputed.set([]);
+      this.bestComputed.set([]);
     }
   }
 }
+ 
