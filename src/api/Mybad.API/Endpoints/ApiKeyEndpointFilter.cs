@@ -17,7 +17,7 @@ public class ApiKeyEndpointFilter : IEndpointFilter
 		var http = context.HttpContext;
 		var config = http.RequestServices.GetRequiredService<IConfiguration>();
 
-		var expected = config["Api-Keys:X-Api-Access"];
+		var expected = config["ApiKeys:XApiAccess"];
 		if (string.IsNullOrEmpty(expected))
 		{
 			return Results.Problem("API key not configured", statusCode: 500);
