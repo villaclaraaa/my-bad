@@ -99,7 +99,9 @@ public class MatchupService : IMatchupService
             .Where(hm => ids.Contains(hm.HeroId) && hm.GamesPlayed >= _minGames)
             .ToListAsync();
 
-        var heroRatings = ComputeHeroRatings(matchupsEnemies, isEnemyData: true);
+        var matchesStats = await _dbContext.HeroesMatches.Where(hm => ids.Contains(hm.HeroId)).ToListAsync();
+
+        var heroRatings = ComputeHeroRatings(matchupsEnemies, matchesStats, isEnemyData: true);
 
         var bestModels = ConvertMatchupDictionaryToModelsList(heroRatings);
         return bestModels;
@@ -112,7 +114,9 @@ public class MatchupService : IMatchupService
            .Where(hm => ids.Contains(hm.HeroId) && hm.GamesPlayed >= _minGames)
            .ToListAsync();
 
-        var heroRatings = ComputeHeroRatings(matchupsAllies, isEnemyData: false);
+        var matchesStats = await _dbContext.HeroesMatches.Where(hm => ids.Contains(hm.HeroId)).ToListAsync();
+
+        var heroRatings = ComputeHeroRatings(matchupsAllies, matchesStats, isEnemyData: false);
 
         var bestModels = ConvertMatchupDictionaryToModelsList(heroRatings);
         return bestModels;
@@ -131,8 +135,11 @@ public class MatchupService : IMatchupService
             .Where(hm => !allyIds.Contains(hm.OtherHeroId))
             .ToListAsync();
 
-        var enemyHeroRatings = ComputeHeroRatings(matchupsEnemies, isEnemyData: true);
-        var allyHeroRatings = ComputeHeroRatings(matchupsAllies, isEnemyData: false);
+        var enemyMatchesStats = await _dbContext.HeroesMatches.Where(hm => enemyIds.Contains(hm.HeroId)).ToListAsync();
+        var allyMatchesStats = await _dbContext.HeroesMatches.Where(hm => allyIds.Contains(hm.HeroId)).ToListAsync();
+
+        var enemyHeroRatings = ComputeHeroRatings(matchupsEnemies, enemyMatchesStats, isEnemyData: true);
+        var allyHeroRatings = ComputeHeroRatings(matchupsAllies, allyMatchesStats, isEnemyData: false);
 
         var allHeroIds = enemyHeroRatings.Keys.Union(allyHeroRatings.Keys).ToHashSet();
         var combinedHeroRatings = new Dictionary<int, (double Rating, double Confidence)>();
@@ -161,7 +168,8 @@ public class MatchupService : IMatchupService
         return ConvertMatchupDictionaryToModelsList(combinedHeroRatings);
     }
 
-    private Dictionary<int, (double Rating, double Confidence)> ComputeHeroRatings<T>(List<T> matchups, bool isEnemyData = true) where T : HeroMatchupEntity
+    private Dictionary<int, (double Rating, double Confidence)> ComputeHeroRatings<T, G>(List<T> matchups, List<G> matchesStats, bool isEnemyData = true)
+        where T : HeroMatchupEntity where G : HeroMatchesEntity
     {
         var heroData = new Dictionary<int, List<(double WinRate, int Games)>>();
 
@@ -180,7 +188,6 @@ public class MatchupService : IMatchupService
         var heroRatings = new Dictionary<int, (double Rating, double Confidence)>();
 
         // Step 2: Bayesian parameters
-        const double priorMean = 0.5;
         const double priorStrength = 20;
 
         foreach (var kv in heroData)
@@ -188,24 +195,27 @@ public class MatchupService : IMatchupService
             var heroId = kv.Key;
             var matchupData = kv.Value;
 
+            var heroGameStats = matchesStats.FirstOrDefault(h => h.HeroId == heroId);
+            double globalWinrate = (double)heroGameStats!.TotalWins / heroGameStats.TotalGamesPlayed;
+
             // Step 3: Calculate total wins and games
-            var totalWins = matchupData.Sum(x => x.WinRate * x.Games);
-            var totalGames = matchupData.Sum(x => x.Games);
+            var totalWins = heroGameStats!.TotalWins;
+            var totalGames = heroGameStats.TotalGamesPlayed;
 
             // Step 4: Bayesian smoothing
-            var bayesianWinRate = (totalWins + priorStrength * priorMean) / (totalGames + priorStrength);
+            var bayesianWinRate = (totalWins + priorStrength * globalWinrate) / (totalGames + priorStrength);
 
             // Step 5: Calculate effectiveness based on data type
             double effectivenessScore;
             if (isEnemyData)
             {
                 // For enemies: lower enemy win rate = better for us
-                effectivenessScore = 1.0 - bayesianWinRate;
+                effectivenessScore = globalWinrate - bayesianWinRate;
             }
             else
             {
                 // For allies: higher ally win rate = better for us
-                effectivenessScore = bayesianWinRate;
+                effectivenessScore = bayesianWinRate - globalWinrate;
             }
 
             // Step 6: Calculate confidence

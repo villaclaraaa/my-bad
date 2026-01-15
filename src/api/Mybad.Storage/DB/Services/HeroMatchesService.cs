@@ -55,12 +55,14 @@ namespace Mybad.Storage.DB.Services
                 }
                 else
                 {
+                    Console.WriteLine(heroId);
                     _dbContext.HeroesMatches.Add(new HeroMatchesEntity
                     {
                         HeroId = heroId,
                         TotalWins = stats.Wins,
                         TotalGamesPlayed = stats.GamesPlayed
                     });
+
                 }
             }
 

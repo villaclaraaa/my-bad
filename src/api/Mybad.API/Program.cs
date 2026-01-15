@@ -32,9 +32,12 @@ builder.Services.AddCors(options =>
 });
 
 // Db registration
-var con = builder.Configuration.GetConnectionString("DefaultConnection");
+/*var con = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(con));
+    options.UseNpgsql(con));*/
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
 // Core services + Db implementations
 builder.Services.AddScoped<IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>, CoreHeroMatchupProvider>();
@@ -51,8 +54,11 @@ builder.Services.AddSingleton<HeroMatchupCacherStatus>();
 builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
 
 // Setup API only DbContext (such as TgBot etc maybe)
+//builder.Services.AddDbContext<ApiDbContext>(options =>
+//    options.UseNpgsql(con));
+
 builder.Services.AddDbContext<ApiDbContext>(options =>
-    options.UseNpgsql(con));
+    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
 // Setup TgBot News
 var bot_token = builder.Configuration["BotSettings:Tg_BotToken"]!;
