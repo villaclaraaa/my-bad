@@ -42,13 +42,16 @@ namespace Mybad.Services.OpenDota.Cachers
                 var uncheckedMatches = await _checkedMatchesService.FilterAlreadyCheckedMatches(response.Select(r => r.MatchId).ToList());
                 var uncheckedSet = new HashSet<long>(uncheckedMatches);
 
-                Console.WriteLine("got response");
                 foreach (var game in response.Where(g => uncheckedSet.Contains(g.MatchId)))
                 {
                     game.SortTeams();
 
                     var winners = game.RadiantWin ? game.RadiantTeam : game.DireTeam;
                     var losers = game.RadiantWin ? game.DireTeam : game.RadiantTeam;
+                    if (winners.Contains(0) || losers.Contains(0))
+                    {
+                        continue;
+                    }
 
                     //go through all winners
                     foreach (var heroW in winners)
