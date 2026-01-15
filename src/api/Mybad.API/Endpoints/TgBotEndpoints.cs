@@ -12,7 +12,8 @@ public static class TgBotEndpoints
 	{
 		var group = routes.MapGroup("tgbot");
 
-		group.MapGet("setwebhook", async (TelegramBotClient bot, CancellationToken token = default) => await SetWebHook(bot, webhookUrl, token));
+		group.MapGet("setwebhook", async (TelegramBotClient bot, CancellationToken token = default) => await SetWebHook(bot, webhookUrl, token))
+			.AddEndpointFilter<ApiKeyEndpointFilter>();
 		group.MapPost("", HandleUpdate);
 		return group;
 	}

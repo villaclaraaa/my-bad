@@ -22,19 +22,19 @@ builder.Services.AddSwaggerGen();
 //CORS (Added by Andrew due to a problem sending a request to Api)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngularApp", policy =>
-    {
-        policy.WithOrigins("http://localhost:63512") // Angular app URL
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
+	options.AddPolicy("AllowAngularApp", policy =>
+	{
+		policy.WithOrigins("http://localhost:63512") // Angular app URL
+			  .AllowAnyHeader()
+			  .AllowAnyMethod()
+			  .AllowCredentials();
+	});
 });
 
 // Db registration
 var con = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(con));
+	options.UseNpgsql(con));
 
 //builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
@@ -55,7 +55,7 @@ builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
 
 // Setup API only DbContext (such as TgBot etc maybe)
 builder.Services.AddDbContext<ApiDbContext>(options =>
-    options.UseNpgsql(con));
+	options.UseNpgsql(con));
 
 //builder.Services.AddDbContext<ApiDbContext>(options =>
 //    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
@@ -72,8 +72,8 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwagger();
+	app.UseSwaggerUI();
 }
 
 //Here as well
@@ -85,14 +85,14 @@ app.MapWardEndpoints();
 app.MapMatchupEndpoints();
 app.MapPlayerEndpoints();
 
-app.MapGet("/test", () => "xarosh")
-    .AllowAnonymous();
+app.MapGet("/test", () => "xarosh");
 
 app.MapGet("/cache", async (ODotaHeroMatchupCacher cacher) =>
 {
-    await cacher.UpdateHeroMatchupsDatabase(75);
-    return "success";
-});
+	await cacher.UpdateHeroMatchupsDatabase(75);
+	return "success";
+})
+	.AddEndpointFilter<ApiKeyEndpointFilter>();
 
 app.MapTgBotEndpoints(webhookURL);
 
