@@ -99,7 +99,7 @@ public class MatchupService : IMatchupService
             .Where(hm => ids.Contains(hm.HeroId) && hm.GamesPlayed >= _minGames)
             .ToListAsync();
 
-        var matchesStats = await _dbContext.HeroesMatches.Where(hm => ids.Contains(hm.HeroId)).ToListAsync();
+        var matchesStats = await _dbContext.HeroesMatches.ToListAsync();
 
         var heroRatings = ComputeHeroRatings(matchupsEnemies, matchesStats, isEnemyData: true);
 
@@ -114,7 +114,7 @@ public class MatchupService : IMatchupService
            .Where(hm => ids.Contains(hm.HeroId) && hm.GamesPlayed >= _minGames)
            .ToListAsync();
 
-        var matchesStats = await _dbContext.HeroesMatches.Where(hm => ids.Contains(hm.HeroId)).ToListAsync();
+        var matchesStats = await _dbContext.HeroesMatches.ToListAsync();
 
         var heroRatings = ComputeHeroRatings(matchupsAllies, matchesStats, isEnemyData: false);
 
@@ -135,8 +135,8 @@ public class MatchupService : IMatchupService
             .Where(hm => !allyIds.Contains(hm.OtherHeroId))
             .ToListAsync();
 
-        var enemyMatchesStats = await _dbContext.HeroesMatches.Where(hm => enemyIds.Contains(hm.HeroId)).ToListAsync();
-        var allyMatchesStats = await _dbContext.HeroesMatches.Where(hm => allyIds.Contains(hm.HeroId)).ToListAsync();
+        var enemyMatchesStats = await _dbContext.HeroesMatches.ToListAsync();
+        var allyMatchesStats = await _dbContext.HeroesMatches.ToListAsync();
 
         var enemyHeroRatings = ComputeHeroRatings(matchupsEnemies, enemyMatchesStats, isEnemyData: true);
         var allyHeroRatings = ComputeHeroRatings(matchupsAllies, allyMatchesStats, isEnemyData: false);
