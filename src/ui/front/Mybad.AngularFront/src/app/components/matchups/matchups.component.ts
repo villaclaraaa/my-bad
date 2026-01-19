@@ -6,6 +6,7 @@ import { Hero } from '../../models/hero.interface';
 import { HeroMatchup } from '../../models/matchup.interface';
 import { LoadingspinnerComponent } from "../../overlay/loadingspinner/loadingspinner.component";
 import { skip } from 'rxjs';
+import e from 'express';
 
 @Component({
   selector: 'app-matchups',
@@ -139,7 +140,7 @@ export class MatchupsComponent {
     }
 
     // 2. Best Versus (only if we have enemies)
-    if (enemyIds.length > 0) {
+    if (enemyIds.length > 0 ) {
       if (!skipEnemies) {
         if (!this.isLoadingVersus()) {
           this.isLoadingVersus.set(true);

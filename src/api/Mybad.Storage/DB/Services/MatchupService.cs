@@ -96,7 +96,7 @@ public class MatchupService : IMatchupService
     public async Task<List<HeroMatchupModel>> CalcutaleBestMatchupVersusEnemies(List<int> ids)
     {
         var matchupsEnemies = await _dbContext.HeroMatchupEnemies
-            .Where(hm => ids.Contains(hm.HeroId) && hm.GamesPlayed >= _minGames)
+            .Where(hm => ids.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
             .ToListAsync();
 
         var matchesStats = await _dbContext.HeroesMatches.ToListAsync();
@@ -111,7 +111,7 @@ public class MatchupService : IMatchupService
     public async Task<List<HeroMatchupModel>> CalcutaleBestMatchupWithAllies(List<int> ids)
     {
         var matchupsAllies = await _dbContext.HeroMatchupAllies
-           .Where(hm => ids.Contains(hm.HeroId) && hm.GamesPlayed >= _minGames)
+           .Where(hm => ids.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
            .ToListAsync();
 
         var matchesStats = await _dbContext.HeroesMatches.ToListAsync();
@@ -126,13 +126,13 @@ public class MatchupService : IMatchupService
     public async Task<List<HeroMatchupModel>> CalcutaleBestMatchupCombined(List<int> enemyIds, List<int> allyIds)
     {
         var matchupsEnemies = await _dbContext.HeroMatchupEnemies
-            .Where(hm => enemyIds.Contains(hm.HeroId) && hm.GamesPlayed >= _minGames)
-            .Where(hm => !enemyIds.Contains(hm.OtherHeroId))
+            .Where(hm => enemyIds.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
+            .Where(hm => !enemyIds.Contains(hm.HeroId))
             .ToListAsync();
 
         var matchupsAllies = await _dbContext.HeroMatchupAllies
-            .Where(hm => allyIds.Contains(hm.HeroId) && hm.GamesPlayed >= _minGames)
-            .Where(hm => !allyIds.Contains(hm.OtherHeroId))
+            .Where(hm => allyIds.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
+            .Where(hm => !allyIds.Contains(hm.HeroId))
             .ToListAsync();
 
         var enemyMatchesStats = await _dbContext.HeroesMatches.ToListAsync();
@@ -171,6 +171,7 @@ public class MatchupService : IMatchupService
     private Dictionary<int, (double Rating, double Confidence)> ComputeHeroRatings<T, G>(List<T> matchups, List<G> matchesStats, bool isEnemyData = true)
         where T : HeroMatchupEntity where G : HeroMatchesEntity
     {
+        // m.heroId - vs pickedHero, m.OhterHeroId - picked hero
         var heroData = new Dictionary<int, List<(double WinRate, int Games)>>();
 
         // Step 1: Group matchup data by hero
@@ -179,15 +180,16 @@ public class MatchupService : IMatchupService
             if (m.GamesPlayed == 0) continue; // Skip invalid data
 
             var winRate = (double)m.Wins / m.GamesPlayed;
-            if (!heroData.ContainsKey(m.OtherHeroId))
-                heroData[m.OtherHeroId] = new List<(double, int)>();
+            if (!heroData.ContainsKey(m.HeroId))
+                heroData[m.HeroId] = new List<(double, int)>();
 
-            heroData[m.OtherHeroId].Add((winRate, m.GamesPlayed));
+            heroData[m.HeroId].Add((winRate, m.GamesPlayed));
         }
 
         var heroRatings = new Dictionary<int, (double Rating, double Confidence)>();
 
         // Step 2: Bayesian parameters
+        const double priorMean = 0.5;
         const double priorStrength = 20;
 
         foreach (var kv in heroData)
@@ -195,22 +197,22 @@ public class MatchupService : IMatchupService
             var heroId = kv.Key;
             var matchupData = kv.Value;
 
+            // Step 3: Calculate total wins and games
+            var totalWins = matchupData.Sum(x => x.WinRate * x.Games);
+            var totalGames = matchupData.Sum(x => x.Games);
+
             var heroGameStats = matchesStats.FirstOrDefault(h => h.HeroId == heroId);
             double globalWinrate = (double)heroGameStats!.TotalWins / heroGameStats.TotalGamesPlayed;
 
-            // Step 3: Calculate total wins and games
-            var totalWins = heroGameStats!.TotalWins;
-            var totalGames = heroGameStats.TotalGamesPlayed;
-
             // Step 4: Bayesian smoothing
-            var bayesianWinRate = (totalWins + priorStrength * globalWinrate) / (totalGames + priorStrength);
+            var bayesianWinRate = (totalWins + priorStrength * priorMean) / (totalGames + priorStrength);
 
             // Step 5: Calculate effectiveness based on data type
             double effectivenessScore;
             if (isEnemyData)
             {
                 // For enemies: lower enemy win rate = better for us
-                effectivenessScore = globalWinrate - bayesianWinRate;
+                effectivenessScore = bayesianWinRate - globalWinrate;
             }
             else
             {
