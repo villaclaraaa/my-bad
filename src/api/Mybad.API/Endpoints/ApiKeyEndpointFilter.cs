@@ -6,7 +6,7 @@ namespace Mybad.API.Endpoints;
 /// <summary>
 /// An endpoint filter that enforces API key authentication for incoming HTTP requests.
 /// </summary>
-/// <remarks>This should be added into endpoints to which we want to restrict unathorized access.</remarks>
+/// <remarks>This should be added into endpoints to which we want to restrict unathorized access as AddEndpointFilter<"ApiKeyEndpointFilter">().</remarks>
 public class ApiKeyEndpointFilter : IEndpointFilter
 {
 	private const string HeaderName = "X-Api-Access";

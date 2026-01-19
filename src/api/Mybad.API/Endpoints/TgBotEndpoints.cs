@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Mybad.Storage.DB.Services;
+﻿using Mybad.Storage.DB.Services;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -10,11 +9,15 @@ public static class TgBotEndpoints
 {
 	public static RouteGroupBuilder MapTgBotEndpoints(this IEndpointRouteBuilder routes, string webhookUrl)
 	{
-		var group = routes.MapGroup("tgbot");
+		var group = routes.MapGroup("tgbot")
+			.WithTags("TelegramBot");
 
 		group.MapGet("setwebhook", async (TelegramBotClient bot, CancellationToken token = default) => await SetWebHook(bot, webhookUrl, token))
 			.AddEndpointFilter<ApiKeyEndpointFilter>();
-		group.MapPost("", HandleUpdate);
+
+		group.MapPost("", HandleUpdate)
+			.ExcludeFromDescription();
+
 		return group;
 	}
 
@@ -24,7 +27,7 @@ public static class TgBotEndpoints
 		return TypedResults.Ok($"Webhook set to {webhookUrl}.");
 	}
 
-	private static async Task HandleUpdate([FromBody] Update update, [FromServices] TelegramBotClient bot, [FromServices] TgBotSubscriberService botService)
+	private static async Task HandleUpdate(Update update, TelegramBotClient bot, TgBotSubscriberService botService)
 	{
 		if (update.Message is null) return;         // we want only updates about new Message
 		if (update.Message.Text is null) return;    // we want only updates about new Text Message

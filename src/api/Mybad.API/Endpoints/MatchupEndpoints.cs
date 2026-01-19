@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Mybad.API.Services;
+﻿using Mybad.API.Services;
 using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
@@ -14,11 +13,20 @@ namespace Mybad.API.Endpoints
 				.WithTags("Matchups")
 				.RequireCors("AllowAngularApp");
 
-			group.MapPost("find", FindBestHeroes);
+			group.MapPost("find", FindBestHeroes)
+				.Produces(200);
 
 			// Background service cacher related endpoints
-			group.MapGet("startCacher", StartCacher).AddEndpointFilter<ApiKeyEndpointFilter>();
-			group.MapGet("stopCacher", StopCacher).AddEndpointFilter<ApiKeyEndpointFilter>();
+			group.MapGet("startCacher", StartCacher)
+				.Produces(200)
+				.Produces(StatusCodes.Status401Unauthorized)
+				.AddEndpointFilter<ApiKeyEndpointFilter>();
+
+			group.MapGet("stopCacher", StopCacher)
+				.Produces(200)
+				.Produces(StatusCodes.Status401Unauthorized)
+				.AddEndpointFilter<ApiKeyEndpointFilter>();
+
 			return group;
 		}
 
@@ -34,7 +42,7 @@ namespace Mybad.API.Endpoints
 			return TypedResults.Ok("Cacher resumed.");
 		}
 
-		private static async Task<IResult> FindBestHeroes([FromBody] HeroMatchupsRequestModel model,
+		private static async Task<IResult> FindBestHeroes(HeroMatchupsRequestModel model,
 			IInfoProvider<HeroMatchupRequest, HeroMatchupResponse> provider)
 		{
 			var request = new HeroMatchupRequest() { EnemyIds = model.EnemyIds, AllyIds = model.AllyIds };

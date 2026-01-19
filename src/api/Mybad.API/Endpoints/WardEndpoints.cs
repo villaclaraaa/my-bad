@@ -1,6 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
-using Mybad.Core;
+﻿using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 using Mybad.Core.Services;
@@ -16,14 +14,23 @@ public static class WardEndpoints
 			.RequireCors("AllowAngularApp");
 
 		// Define ward-related endpoints here
-		group.MapGet("map", GetWardsPlacementMap);
-		group.MapGet("efficiency", GetWardsEfficiency);
-		group.MapDelete("efficiency/match", DeleteMatchFromEfficiency);
+		group.MapGet("map", GetWardsPlacementMap)
+			.Produces<WardsMapPlacementResponse>(200)
+			.Produces(400);
+
+		group.MapGet("efficiency", GetWardsEfficiency)
+			.Produces<WardsEfficiencyResponse>(200)
+			.Produces(400);
+
+		group.MapDelete("efficiency/match", DeleteMatchFromEfficiency)
+			.Produces(204)
+			.Produces(400);
+
 		return group;
 	}
 
 	private static async Task<IResult> DeleteMatchFromEfficiency(
-		[FromQuery] long matchId, [FromQuery] long accountId,
+		long matchId, long accountId,
 		IParsedMatchWardInfoService matchesService, IWardService wardsService)
 	{
 		if (accountId <= 0 || matchId <= 0)
@@ -38,10 +45,9 @@ public static class WardEndpoints
 	}
 
 	private static async Task<IResult> GetWardsEfficiency(
-		[FromQuery] long accountId,
+		long accountId,
 		IInfoProvider<WardsEfficiencyRequest, WardsEfficiencyResponse> provider)
 	{
-		//ArgumentOutOfRangeException.ThrowIfNegative(accountId);
 		if (accountId <= 0)
 		{
 			return TypedResults.BadRequest("AccountId must be a positive number.");
@@ -51,10 +57,8 @@ public static class WardEndpoints
 		return TypedResults.Ok(response);
 	}
 
-	[ProducesResponseType(StatusCodes.Status200OK)]
-	[ProducesResponseType(StatusCodes.Status400BadRequest)]
 	private static async Task<IResult> GetWardsPlacementMap(
-		[FromQuery] long accountId,
+		long accountId,
 		IInfoProvider<WardMapRequest, WardsMapPlacementResponse> provider)
 	{
 		//ArgumentOutOfRangeException.ThrowIfNegative(accountId);

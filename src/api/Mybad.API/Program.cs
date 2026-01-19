@@ -91,8 +91,8 @@ app.MapPlayerEndpoints();
 
 app.MapTgBotEndpoints(webhookURL);
 
-app.MapGet("/test", () => "xarosh");
-app.MapGet("/cache", async (ODotaHeroMatchupCacher cacher) =>
+app.MapGet("/test", () => "alive alive ya, xarosh");
+app.MapGet("/cacheOnce", async (ODotaHeroMatchupCacher cacher) =>
 {
 	await cacher.UpdateHeroMatchupsDatabase(75);
 	return "success";

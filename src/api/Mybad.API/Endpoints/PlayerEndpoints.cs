@@ -1,6 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
-using Mybad.Core;
+﻿using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
 
@@ -10,16 +8,18 @@ public static class PlayerEndpoints
 {
 	public static RouteGroupBuilder MapPlayerEndpoints(this IEndpointRouteBuilder routes)
 	{
-		var group = routes.MapGroup("api/players").WithTags("Players")
+		var group = routes.MapGroup("api/players")
+			.WithTags("Players")
 			.RequireCors("AllowAngularApp");
 
-		// Define ward-related endpoints here
-		group.MapGet("baseinfo", GetBasePlayerInfo);
+		group.MapGet("baseinfo", GetBasePlayerInfo)
+			.Produces(200);
+
 		return group;
 	}
 
 	private static async Task<IResult> GetBasePlayerInfo(
-		[FromQuery] long accountId,
+		long accountId,
 		IInfoProvider<PlayerInfoRequest, PlayerInfoResponse> provider)
 	{
 		//ArgumentOutOfRangeException.ThrowIfNegative(accountId);
