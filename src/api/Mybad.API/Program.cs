@@ -76,17 +76,22 @@ if (app.Environment.IsDevelopment())
 	app.UseSwaggerUI();
 }
 
+app.UseHttpsRedirection();
+
+// Angular in the same project setup
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 //Here as well
 app.UseCors("AllowAngularApp");
-
-app.UseHttpsRedirection();
 
 app.MapWardEndpoints();
 app.MapMatchupEndpoints();
 app.MapPlayerEndpoints();
 
-app.MapGet("/test", () => "xarosh");
+app.MapTgBotEndpoints(webhookURL);
 
+app.MapGet("/test", () => "xarosh");
 app.MapGet("/cache", async (ODotaHeroMatchupCacher cacher) =>
 {
 	await cacher.UpdateHeroMatchupsDatabase(75);
@@ -94,6 +99,6 @@ app.MapGet("/cache", async (ODotaHeroMatchupCacher cacher) =>
 })
 	.AddEndpointFilter<ApiKeyEndpointFilter>();
 
-app.MapTgBotEndpoints(webhookURL);
+app.MapFallbackToFile("index.html");
 
 app.Run();
