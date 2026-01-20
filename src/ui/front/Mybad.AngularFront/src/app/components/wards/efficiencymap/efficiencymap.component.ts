@@ -6,12 +6,13 @@ import { combineLatest, filter, map, shareReplay, startWith, Subject, switchMap,
 import { WardsService } from '../../../services/wards.service';
 import { WardSimpleEfficiency } from '../../../models/wardsModels';
 import { ErrorComponent } from '../../../overlay/error/error.component';
+import { HeronamespipePipe } from '../../../pipes/heronamespipe.pipe';
 type SideFilter = 'all' | 'radiant' | 'dire';
 
 @Component({
   selector: 'app-efficiencymap',
   standalone: true,
-  imports: [NgFor, CommonModule, FormsModule, ErrorComponent],
+  imports: [NgFor, CommonModule, FormsModule, ErrorComponent, HeronamespipePipe],
   templateUrl: './efficiencymap.component.html',
   styleUrl: './efficiencymap.component.css'
 })

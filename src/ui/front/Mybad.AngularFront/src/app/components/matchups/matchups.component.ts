@@ -7,11 +7,12 @@ import { HeroMatchup } from '../../models/matchup.interface';
 import { LoadingspinnerComponent } from "../../overlay/loadingspinner/loadingspinner.component";
 import { skip } from 'rxjs';
 import e from 'express';
+import { HeronamespipePipe } from '../../pipes/heronamespipe.pipe';
 
 @Component({
   selector: 'app-matchups',
   standalone: true,
-  imports: [CommonModule, FormsModule, LoadingspinnerComponent],
+  imports: [CommonModule, FormsModule, LoadingspinnerComponent, HeronamespipePipe],
   templateUrl: './matchups.component.html',
   styleUrls: ['./matchups.component.css']
 })

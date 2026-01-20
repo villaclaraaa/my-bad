@@ -48,7 +48,7 @@
         <div class="result-item" *ngFor="let m of bestAlly(); let i = index">
           <span class="res-number">{{ i + 1 }})</span>
           <img [src]="getHeroImgById(m.heroId)" class="result-hero-img">
-          <span class="res-name">{{ m.heroName }}</span>
+          <span class="res-name">{{ m.heroName | heronamespipe }}</span>
         </div>
       </div>
     </div>
@@ -66,7 +66,7 @@
         <div class="result-item" *ngFor="let m of bestComputed(); let i = index">
           <span class="res-number">{{ i + 1 }})</span>
           <img [src]="getHeroImgById(m.heroId)" class="result-hero-img">
-          <span class="res-name">{{ m.heroName }}</span>
+          <span class="res-name">{{ m.heroName | heronamespipe }}</span>
         </div>
       </div>
     </div>
@@ -84,7 +84,7 @@
         <div class="result-item" *ngFor="let m of bestVersus(); let i = index">
           <span class="res-number">{{ i + 1 }})</span>
           <img [src]="getHeroImgById(m.heroId)" class="result-hero-img">
-          <span class="res-name">{{ m.heroName }}</span>
+          <span class="res-name">{{ m.heroName | heronamespipe }}</span>
         </div>
       </div>
     </div>
