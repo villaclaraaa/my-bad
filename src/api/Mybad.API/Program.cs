@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Mybad.API.Endpoints;
 using Mybad.API.Services;
@@ -14,12 +15,75 @@ using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+/* 
+ * Db registration section. 
+ */
+var con = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+	options.UseNpgsql(con));
+
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+
+// Setup API only DbContext (such as TgBot etc maybe)
+builder.Services.AddDbContext<ApiDbContext>(options =>
+	options.UseNpgsql(con));
+
+//builder.Services.AddDbContext<ApiDbContext>(options =>
+//    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+
+/* 
+ * Projects services registration.
+ */
+/* Mybad.Core services registration. */
+builder.Services.AddScoped<IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>, CoreHeroMatchupProvider>();
+
+/* Mybad.Storage.Db services registration. */
+builder.Services.AddDbServices();
+
+/* ODota Services registration including httpclient and info providers. */
+builder.Services.AddODotaServices();
+
+/* 
+ * API (current project) services registration. 
+ */
+builder.Services.AddSingleton<HeroMatchupCacherStatus>();
+builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
+
+// Setup TgBot News
+var bot_token = builder.Configuration["BotSettings:Tg_BotToken"]!;
+var webhookURL = builder.Configuration["BotSettings:Tg_BotWebhookUrl"]!;
+builder.Services.AddHttpClient("tgwebhook").RemoveAllLoggers().AddTypedClient(httpClient => new TelegramBotClient(bot_token!, httpClient));
+builder.Services.AddScoped<INotifier, TgBotNotifier>();
+builder.Services.AddScoped<TgBotSubscriberService>();
+
+// Configuring Rate Limiting Middleware
+var timespanSeconds = builder.Configuration.GetValue<int>("RateLimit:TimespanSeconds");
+var requestCount = builder.Configuration.GetValue<int>("RateLimit:RequestsCount");
+builder.Services.AddRateLimiter(options =>
+{
+	options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+		RateLimitPartition.GetFixedWindowLimiter(
+			partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+			factory: partition => new FixedWindowRateLimiterOptions
+			{
+				PermitLimit = requestCount,
+				Window = TimeSpan.FromSeconds(timespanSeconds)
+			}));
+
+	options.OnRejected = async (context, token) =>
+	{
+		context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+		context.HttpContext.Response.Headers.RetryAfter = $"{timespanSeconds}";
+		await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", token);
+	};
+});
+
+// OpenApi + Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//CORS (Added by Andrew due to a problem sending a request to Api)
+// CORS (Added by Andrew due to a problem sending a request to Api)
 builder.Services.AddCors(options =>
 {
 	options.AddPolicy("AllowAngularApp", policy =>
@@ -30,42 +94,9 @@ builder.Services.AddCors(options =>
 			  .AllowCredentials();
 	});
 });
-
-// Db registration
-var con = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseNpgsql(con));
-
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
-
-// Core services + Db implementations
-builder.Services.AddScoped<IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>, CoreHeroMatchupProvider>();
-
-builder.Services.AddScoped<IWardService, WardsService>();
-builder.Services.AddScoped<IMatchupService, MatchupService>();
-builder.Services.AddScoped<ICheckedMatchesService, CheckedMatchesService>();
-builder.Services.AddScoped<IParsedMatchWardInfoService, ParsedMatchWardInfoService>();
-builder.Services.AddScoped<IHeroMatchesService, HeroMatchesService>();
-// ODota Services registration including httpclient and info providers.
-builder.Services.AddODotaServices();
-
-builder.Services.AddSingleton<HeroMatchupCacherStatus>();
-builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
-
-// Setup API only DbContext (such as TgBot etc maybe)
-builder.Services.AddDbContext<ApiDbContext>(options =>
-	options.UseNpgsql(con));
-
-//builder.Services.AddDbContext<ApiDbContext>(options =>
-//    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
-
-// Setup TgBot News
-var bot_token = builder.Configuration["BotSettings:Tg_BotToken"]!;
-var webhookURL = builder.Configuration["BotSettings:Tg_BotWebhookUrl"]!;
-builder.Services.AddHttpClient("tgwebhook").RemoveAllLoggers().AddTypedClient(httpClient => new TelegramBotClient(bot_token!, httpClient));
-builder.Services.AddScoped<INotifier, TgBotNotifier>();
-builder.Services.AddScoped<TgBotSubscriberService>();
+/*
+ * End of services registartion.
+ */
 
 var app = builder.Build();
 
@@ -84,6 +115,8 @@ app.UseStaticFiles();
 
 //Here as well
 app.UseCors("AllowAngularApp");
+
+app.UseRateLimiter();
 
 app.MapWardEndpoints();
 app.MapMatchupEndpoints();
