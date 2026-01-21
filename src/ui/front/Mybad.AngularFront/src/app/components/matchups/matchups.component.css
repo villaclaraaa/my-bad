@@ -16,7 +16,7 @@
 .team-panel {
   flex: 1;
   background: #334155;
-  padding: 20px;
+  padding: 0px;
   border-radius: 8px;
   min-width: 300px;
   border: 1px solid #475569;
@@ -60,8 +60,8 @@
   display: flex;
   gap: 10px;
   justify-content: center;
-  min-height: 80px;
   flex-wrap: wrap;
+  min-height: 80px;
 }
 
 .slot {
@@ -74,6 +74,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.slot:hover {
+  transform: translateY(-4px);
+  border-color: #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 .slot img {
@@ -374,12 +381,15 @@
   overflow: hidden;
   box-shadow: 0 0 5px rgba(0,0,0,0.5);
   transition: transform 0.1s ease;
+  width: 100%;
+  aspect-ratio: 16/9;
 }
 
 .hero-card .img-wrapper img {
   width: 100%;
+  height: 100%;
   display: block;
-  aspect-ratio: 16/9;
+  object-fit: cover;
 }
 
 .hero-card .hero-name {
@@ -529,7 +539,6 @@
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  max-width: 100%;
 }
 
 .pool-hero {
@@ -562,6 +571,24 @@
   text-align: center;
   padding: 4px 2px;
   color: #e2e8f0;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pool-hero .slot-name {
+  background: rgba(0,0,0,0.8);
+  width: 100%;
+  font-size: 0.7rem;
+  text-align: center;
+  padding: 4px 2px;
+  color: #e2e8f0;
+  position: relative;
+  bottom: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pool-hero.empty {
@@ -570,7 +597,7 @@
   justify-content: center;
   background: #1e293b;
   border: 2px dashed #64748b;
-  aspect-ratio: 16/9;
+  height: 45px;
 }
 
 .pool-hero.empty span {

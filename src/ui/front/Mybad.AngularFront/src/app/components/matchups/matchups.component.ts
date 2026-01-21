@@ -55,10 +55,16 @@ export class MatchupsComponent {
   filteredGroupedHeroes = computed(() => {
     const text = this.searchText().toLowerCase();
     const all = this.heroes();
-
-   const filtered = all.filter(hero => hero.localized_name.toLowerCase().includes(text))
-      .filter(hero => !this.myTeam().find(h => h.id === hero.id) && !this.enemyTeam().find(h => h.id === hero.id));
-
+  
+    let filtered: Hero[] = [];
+   if(this.pickingSide() === 'pool') {
+     filtered = all.filter(hero => hero.localized_name.toLowerCase().includes(text))
+     .filter(hero => !this.heroPool().find(h => h.id === hero.id));
+    }
+    else{
+     filtered = all.filter(hero => hero.localized_name.toLowerCase().includes(text))
+       .filter(hero => !this.myTeam().find(h => h.id === hero.id) && !this.enemyTeam().find(h => h.id === hero.id));
+   }
     return {
       str: filtered.filter(h => h.primary_attr === 'str'),
       agi: filtered.filter(h => h.primary_attr === 'agi'),
