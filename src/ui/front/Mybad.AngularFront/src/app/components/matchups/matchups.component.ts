@@ -26,9 +26,14 @@ export class MatchupsComponent {
   myTeam = signal<Hero[]>([]);
   enemyTeam = signal<Hero[]>([]);
 
+  // Hero Pool
+  heroPool = signal<Hero[]>([]);
+  poolSearchText = signal<string>('');
+  isPoolEnabled = signal<boolean>(false);
+
   // Picker State
   isPicking = signal<boolean>(false);
-  pickingSide = signal<'my' | 'enemy' | null>(null);
+  pickingSide = signal<'my' | 'enemy' | 'pool' | null>(null);
 
   // Results
   bestAlly = signal<HeroMatchup[]>([]);
@@ -43,6 +48,7 @@ export class MatchupsComponent {
   constructor() {
     this.heroService.getHeroes().subscribe((data: Hero[]) => {
       this.heroes.set(data);
+      this.loadHeroPoolFromLocalStorage();
     });
   }
 
@@ -50,7 +56,7 @@ export class MatchupsComponent {
     const text = this.searchText().toLowerCase();
     const all = this.heroes();
 
-    const filtered = all.filter(hero => hero.localized_name.toLowerCase().includes(text))
+   const filtered = all.filter(hero => hero.localized_name.toLowerCase().includes(text))
       .filter(hero => !this.myTeam().find(h => h.id === hero.id) && !this.enemyTeam().find(h => h.id === hero.id));
 
     return {
@@ -70,7 +76,7 @@ export class MatchupsComponent {
     return hero ? this.getHeroImg(hero.img) : '';
   }
 
-  openPicker(side: 'my' | 'enemy') {
+  openPicker(side: 'my' | 'enemy' | 'pool') {
     this.pickingSide.set(side);
     this.isPicking.set(true);
     this.searchText.set('');
@@ -93,6 +99,13 @@ export class MatchupsComponent {
         this.enemyTeam.update(team => [...team, hero]);
         skipAllies = true;
       }
+    } else if (side === 'pool') {
+      if (!this.heroPool().find(h => h.id === hero.id)) {
+        this.heroPool.update(pool => [...pool, hero]);
+        this.saveHeroPoolToLocalStorage();
+      }
+      this.closePicker();
+      return;
     }
     this.closePicker();
     this.calculateMatchups(skipAllies, !skipAllies);
@@ -112,11 +125,18 @@ export class MatchupsComponent {
   calculateMatchups(skipAllies: boolean, skipEnemies: boolean) {
     const allyIds = this.myTeam().map(h => h.id);
     const enemyIds = this.enemyTeam().map(h => h.id);
+    const poolIds = this.heroPool().map(h => h.id);
 
     // Convert empty arrays to null for API
     const allyIdsOrNull = allyIds.length > 0 ? allyIds : null;
     const enemyIdsOrNull = enemyIds.length > 0 ? enemyIds : null;
+    let poolIdsOrNull = poolIds.length > 0 ? poolIds : null;
 
+    if(!this.isPoolEnabled()) {
+      poolIdsOrNull = null;
+    }
+
+    console.log(poolIdsOrNull);
     if (allyIds.length === 0 && enemyIds.length === 0) {
       this.bestAlly.set([]);
       this.bestComputed.set([]);
@@ -130,7 +150,7 @@ export class MatchupsComponent {
 
         if (!this.isLoadingAlly()) {
           this.isLoadingAlly.set(true);
-          this.heroService.findBestHeroes(allyIdsOrNull, null).subscribe(res => {
+          this.heroService.findBestHeroes(allyIdsOrNull, null, poolIdsOrNull).subscribe(res => {
             this.bestAlly.set(res.matchup.slice(0, 10));
             this.isLoadingAlly.set(false);
           });
@@ -145,7 +165,7 @@ export class MatchupsComponent {
       if (!skipEnemies) {
         if (!this.isLoadingVersus()) {
           this.isLoadingVersus.set(true);
-          this.heroService.findBestHeroes(null, enemyIdsOrNull).subscribe(res => {
+          this.heroService.findBestHeroes(null, enemyIdsOrNull, poolIdsOrNull).subscribe(res => {
             this.bestVersus.set(res.matchup.slice(0, 10));
             this.isLoadingVersus.set(false);
           });
@@ -159,7 +179,7 @@ export class MatchupsComponent {
     if (allyIds.length > 0 || enemyIds.length > 0) {
       if (!this.isLoadingComputed()) {
         this.isLoadingComputed.set(true);
-        this.heroService.findBestHeroes(allyIdsOrNull, enemyIdsOrNull).subscribe(res => {
+        this.heroService.findBestHeroes(allyIdsOrNull, enemyIdsOrNull, poolIdsOrNull).subscribe(res => {
           this.bestComputed.set(res.matchup.slice(0, 10));
           this.isLoadingComputed.set(false);
         });
@@ -167,6 +187,35 @@ export class MatchupsComponent {
     } else {
       this.bestComputed.set([]);
     }
+  }
+
+  // Hero Pool Management
+  loadHeroPoolFromLocalStorage() {
+    const storedIds = localStorage.getItem('heroPoolIds');
+    if (storedIds) {
+      try {
+        const ids: number[] = JSON.parse(storedIds);
+        const poolHeroes = this.heroes().filter(hero => ids.includes(hero.id));
+        this.heroPool.set(poolHeroes);
+      } catch (e) {
+        console.error('Error loading hero pool from local storage', e);
+      }
+    }
+  }
+
+  saveHeroPoolToLocalStorage() {
+    const ids = this.heroPool().map(h => h.id);
+    localStorage.setItem('heroPoolIds', JSON.stringify(ids));
+  }
+
+  removeHeroFromPool(hero: Hero) {
+    this.heroPool.update(pool => pool.filter(h => h.id !== hero.id));
+    this.saveHeroPoolToLocalStorage();
+  }
+
+  changeUsingHeroPool() {
+    this.isPoolEnabled.set(!this.isPoolEnabled());
+    this.calculateMatchups(false, false);
   }
 }
  
