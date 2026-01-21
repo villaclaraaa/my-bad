@@ -1,4 +1,4 @@
-<div class="matchups-container md:mt-2 m-2 rounded min-h-[80vh]">
+<div class="matchups-container  m-2 rounded min-h-[80vh]">
   <!-- Matchups Page -->
   
   <!-- Teams Section -->
@@ -11,7 +11,7 @@
           <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name">
           <div class="slot-name">{{ hero.localized_name }}</div>
         </div>
-        <div class="slot empty" *ngIf="myTeam().length < 5" (click)="openPicker('my')">
+        <div class="pool-hero empty" *ngIf="myTeam().length < 5" (click)="openPicker('my')">
           <span>+</span>
         </div>
       </div>
@@ -25,7 +25,7 @@
           <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name">
           <div class="slot-name">{{ hero.localized_name }}</div>
         </div>
-        <div class="slot empty" *ngIf="enemyTeam().length < 5" (click)="openPicker('enemy')">
+        <div class="pool-hero empty" *ngIf="enemyTeam().length < 5" (click)="openPicker('enemy')">
           <span>+</span>
         </div>
       </div>
@@ -89,6 +89,31 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Hero Pool Section -->
+  <div class="hero-pool-section">
+    <div class="pool-header">
+      <h2>My Hero Pool</h2>
+      <label class="toggle-slider">
+        <input type="checkbox" [checked]="isPoolEnabled()" (change)="changeUsingHeroPool()">
+        <span class="slider"></span>
+        <span class="slider-label">{{ isPoolEnabled() ? 'Enabled' : 'Disabled' }}</span>
+      </label>
+    </div>
+    <p class="pool-description">Select heroes you play to filter recommendations</p>
+    
+    <div class="pool-container">
+      <div class="team-slots">
+        <div class="slot" *ngFor="let hero of heroPool()" (click)="removeHeroFromPool(hero)">
+          <img [src]="getHeroImg(hero.img)" [alt]="hero.localized_name">
+          <div class="slot-name">{{ hero.localized_name }}</div>
+        </div>
+        <div class="slot empty" (click)="openPicker('pool')">
+          <span>+</span>
+        </div>
+      </div>
+    </div>
   </div>
 
 </div>

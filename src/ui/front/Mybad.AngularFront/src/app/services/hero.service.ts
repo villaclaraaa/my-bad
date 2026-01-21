@@ -24,7 +24,7 @@ export class HeroService {
     );
  }
 
- findBestHeroes(allyIds: number[] | null, enemyIds: number[] | null): Observable<HeroMatchupResponse> {
-    return this.http.post<HeroMatchupResponse>(this.apiUrl, { allyIds, enemyIds });
+ findBestHeroes(allyIds: number[] | null, enemyIds: number[] | null, heroesInPool?: number[] | null): Observable<HeroMatchupResponse> {
+    return this.http.post<HeroMatchupResponse>(this.apiUrl, { allyIds, enemyIds, heroesInPool });
  }
 }
