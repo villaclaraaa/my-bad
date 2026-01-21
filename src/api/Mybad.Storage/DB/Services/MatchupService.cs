@@ -140,6 +140,7 @@ public class MatchupService : IMatchupService
         var matchupsEnemies = await _dbContext.HeroMatchupEnemies
             .Where(hm => enemyIds.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
             .Where(hm => !enemyIds.Contains(hm.HeroId))
+            .Where(hm => !allyIds.Contains(hm.HeroId))
             .ToListAsync();
 
         if (heroesInPool != null)
@@ -150,6 +151,7 @@ public class MatchupService : IMatchupService
         var matchupsAllies = await _dbContext.HeroMatchupAllies
             .Where(hm => allyIds.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
             .Where(hm => !allyIds.Contains(hm.HeroId))
+            .Where(hm => !enemyIds.Contains(hm.HeroId))
             .ToListAsync();
 
         if (heroesInPool != null)
