@@ -1,7 +1,6 @@
-<nav
-  class="hidden md:grid fixed top-0 w-full bg-slate-800 border-b border-slate-700 z-50 px-8 py-4 shadow-xl
-         grid-cols-3 items-center"
->
+<!-- Desktop navbar at top. -->
+<nav class="hidden md:grid fixed top-0 w-full bg-slate-800 border-b border-slate-700 z-50 px-8 py-4 shadow-xl
+         grid-cols-3 items-center">
     <!-- Left: App title -->
     <div class="text-2xl font-bold text-sky-400 cursor-pointer justify-self-start" routerLink="/">
         My bad
@@ -11,28 +10,25 @@
     <ul class="flex space-x-8 font-medium justify-self-center">
         <li>
             <a routerLink="/matchups" routerLinkActive="text-sky-400"
-               class="text-slate-300 hover:text-sky-400 transition duration-200 cursor-pointer flex space-x-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M13 10V3L4 14h7v7l9-11h-7z" />
+                class=" hover:text-sky-400 transition duration-200 cursor-pointer flex space-x-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span class="text-xs mt-1">Matchups</span>
+                <span class="text-sm mt-1">Matchups</span>
             </a>
         </li>
 
         <li>
             <a routerLink="/wards" routerLinkActive="text-sky-400"
-               class="text-slate-300 hover:text-sky-400 transition duration-200 cursor-pointer flex space-x-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7
+                class=" hover:text-sky-400 transition duration-200 cursor-pointer flex space-x-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7
                              -1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                <span class="text-xs mt-1">Wards</span>
+                <span class="text-sm mt-1">Wards</span>
             </a>
         </li>
     </ul>
@@ -41,28 +37,28 @@
     <div></div>
 </nav>
 
-
-
-<nav class="md:hidden fixed bottom-0 w-full bg-slate-800 border-t border-slate-700 z-50 flex justify-around py-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)]">
+<!-- Mobile navbar at bottom. -->
+<nav
+    class="md:hidden fixed bottom-0 w-full bg-slate-800 border-t border-slate-700 z-50 flex justify-around py-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)]">
 
     <a routerLink="/matchups" routerLinkActive="text-sky-400"
-        class="flex flex-col items-center text-slate-500 hover:text-sky-400 transition cursor-pointer">
+        class="flex flex-col items-center hover:text-sky-400 transition cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
             stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
-        <span class="text-xs mt-1">Match</span>
+        <span class="text-sm mt-1">Matchups</span>
     </a>
 
     <a routerLink="/wards" routerLinkActive="text-sky-400"
-        class="flex flex-col items-center text-slate-500 hover:text-sky-400 transition cursor-pointer">
+        class="flex flex-col items-center hover:text-sky-400 transition cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"
             stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             <path stroke-linecap="round" stroke-linejoin="round"
                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
         </svg>
-        <span class="text-xs mt-1">Wards</span>
+        <span class="text-sm mt-1">Wards</span>
     </a>
 </nav>
 

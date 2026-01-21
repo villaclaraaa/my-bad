@@ -26,7 +26,7 @@ public class TgBotNotifier : INotifier
 		{
 			try
 			{
-				await _bot.SendMessage(id, message.ToString());
+				await _bot.SendMessage(id, message.ToString(), parseMode: Telegram.Bot.Types.Enums.ParseMode.Html);
 			}
 			catch
 			{
