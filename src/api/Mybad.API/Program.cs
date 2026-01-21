@@ -48,7 +48,34 @@ builder.Services.AddODotaServices();
  * API (current project) services registration. 
  */
 builder.Services.AddSingleton<HeroMatchupCacherStatus>();
-builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
+
+// Register some stuff only in Prod env.
+if (!builder.Environment.IsDevelopment())
+{
+	builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
+
+	// Configuring Rate Limiting Middleware
+	var timespanSeconds = builder.Configuration.GetValue<int>("RateLimit:TimespanSeconds");
+	var requestCount = builder.Configuration.GetValue<int>("RateLimit:RequestsCount");
+	builder.Services.AddRateLimiter(options =>
+	{
+		options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+			RateLimitPartition.GetFixedWindowLimiter(
+				partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+				factory: partition => new FixedWindowRateLimiterOptions
+				{
+					PermitLimit = requestCount,
+					Window = TimeSpan.FromSeconds(timespanSeconds)
+				}));
+
+		options.OnRejected = async (context, token) =>
+		{
+			context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+			context.HttpContext.Response.Headers.RetryAfter = $"{timespanSeconds}";
+			await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", token);
+		};
+	});
+}
 
 // Setup TgBot News
 var bot_token = builder.Configuration["BotSettings:Tg_BotToken"]!;
@@ -56,28 +83,6 @@ var webhookURL = builder.Configuration["BotSettings:Tg_BotWebhookUrl"]!;
 builder.Services.AddHttpClient("tgwebhook").RemoveAllLoggers().AddTypedClient(httpClient => new TelegramBotClient(bot_token!, httpClient));
 builder.Services.AddScoped<INotifier, TgBotNotifier>();
 builder.Services.AddScoped<TgBotSubscriberService>();
-
-// Configuring Rate Limiting Middleware
-var timespanSeconds = builder.Configuration.GetValue<int>("RateLimit:TimespanSeconds");
-var requestCount = builder.Configuration.GetValue<int>("RateLimit:RequestsCount");
-builder.Services.AddRateLimiter(options =>
-{
-	options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-		RateLimitPartition.GetFixedWindowLimiter(
-			partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-			factory: partition => new FixedWindowRateLimiterOptions
-			{
-				PermitLimit = requestCount,
-				Window = TimeSpan.FromSeconds(timespanSeconds)
-			}));
-
-	options.OnRejected = async (context, token) =>
-	{
-		context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-		context.HttpContext.Response.Headers.RetryAfter = $"{timespanSeconds}";
-		await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", token);
-	};
-});
 
 // OpenApi + Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -116,7 +121,10 @@ app.UseStaticFiles();
 //Here as well
 app.UseCors("AllowAngularApp");
 
-app.UseRateLimiter();
+if (!app.Environment.IsDevelopment())
+{
+	app.UseRateLimiter();
+}
 
 app.MapWardEndpoints();
 app.MapMatchupEndpoints();

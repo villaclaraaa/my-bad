@@ -1,6 +1,6 @@
-﻿using Mybad.Core.Services;
+﻿using System.Diagnostics;
+using Mybad.Core.Services;
 using Mybad.Services.OpenDota.Cachers;
-using System.Diagnostics;
 
 namespace Mybad.API.Services;
 
@@ -62,7 +62,7 @@ public class HeroMatchupCacherHostedService : BackgroundService
 			_logger.LogWarning("{@Service} - Exception while doing work - {@ex}", nameof(HeroMatchupCacherHostedService), ex.Message);
 			if (notifier is not null)
 			{
-				await notifier.NotifyAsync(new NotifyMessage($"<b>[{DateTime.Now} UTC]</b> - UpdateHeroMatchup failed. Exception:\n{ex.Message}."));
+				await notifier.NotifyAsync(new NotifyMessage($"<b>[{DateTime.UtcNow} UTC]</b> - UpdateHeroMatchup failed. Exception:\n{ex.Message}."));
 			}
 		}
 		finally
@@ -71,7 +71,7 @@ public class HeroMatchupCacherHostedService : BackgroundService
 			if (notifier is not null)
 			{
 				await notifier.NotifyAsync(new NotifyMessage(
-					$"[{DateTime.Now} UTC] - UpdateHeroMatchup finished with success - {opResult.ToString().ToUpperInvariant()}.\nMatches in Db - {cacher.CachedMatchesCount}.\nTime elapsed - {sw.Elapsed.TotalSeconds} s."));
+					$"<b>[{DateTime.UtcNow} UTC]</b> - UpdateHeroMatchup finished with success - <b>{opResult.ToString().ToUpperInvariant()}</b>.\nMatches in Db - {cacher.CachedMatchesCount}.\nTime elapsed - {sw.Elapsed.TotalSeconds} s."));
 			}
 		}
 	}
