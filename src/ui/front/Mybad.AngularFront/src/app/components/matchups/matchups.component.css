@@ -30,7 +30,7 @@
 
   .team-panel {
     min-width: 100%;
-    padding: 15px;
+    padding: 5px;
   }
 
   .teams-section {
@@ -58,7 +58,7 @@
 
 .team-slots {
   display: flex;
-  gap: 10px;
+  gap: 20px 10px;
   justify-content: center;
   flex-wrap: wrap;
   min-height: 80px;
@@ -114,7 +114,7 @@
 /* Mobile: Smaller slots */
 @media (max-width: 768px) {
   .team-slots {
-    gap: 8px;
+    gap: 16px 4px;
   }
 
   .slot {
