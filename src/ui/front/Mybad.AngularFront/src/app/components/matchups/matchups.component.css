@@ -30,7 +30,7 @@
 
   .team-panel {
     min-width: 100%;
-    padding: 15px;
+    padding: 5px;
   }
 
   .teams-section {
@@ -58,7 +58,7 @@
 
 .team-slots {
   display: flex;
-  gap: 10px;
+  gap: 20px 10px;
   justify-content: center;
   flex-wrap: wrap;
   min-height: 70px;
@@ -114,7 +114,7 @@
 /* Mobile: Smaller slots */
 @media (max-width: 768px) {
   .team-slots {
-    gap: 8px;
+    gap: 16px 4px;
   }
 
   .slot {
@@ -231,8 +231,10 @@
 
 .picker-modal {
   background: #1e293b;
-  width: 90%;
-  height: 90%;
+  width: 1400px;
+  height: 800px;
+  max-width: 95vw;
+  max-height: 90vh;
   overflow-y: auto;
   padding: 20px;
   border-radius: 8px;
