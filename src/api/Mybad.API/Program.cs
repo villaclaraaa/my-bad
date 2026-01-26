@@ -16,35 +16,6 @@ using Telegram.Bot;
 var builder = WebApplication.CreateBuilder(args);
 
 /* 
- * Db registration section. 
- */
-var con = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseNpgsql(con));
-
-//builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
-
-// Setup API only DbContext (such as TgBot etc maybe)
-builder.Services.AddDbContext<ApiDbContext>(options =>
-	options.UseNpgsql(con));
-
-//builder.Services.AddDbContext<ApiDbContext>(options =>
-//    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
-
-/* 
- * Projects services registration.
- */
-/* Mybad.Core services registration. */
-builder.Services.AddScoped<IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>, CoreHeroMatchupProvider>();
-
-/* Mybad.Storage.Db services registration. */
-builder.Services.AddDbServices();
-
-/* ODota Services registration including httpclient and info providers. */
-builder.Services.AddODotaServices();
-
-/* 
  * API (current project) services registration. 
  */
 builder.Services.AddSingleton<HeroMatchupCacherStatus>();
@@ -99,11 +70,58 @@ builder.Services.AddCors(options =>
 			  .AllowCredentials();
 	});
 });
+
+/* 
+ * Db registration section. 
+ */
+var con = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+	options.UseNpgsql(con));
+
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+//    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+
+// Setup API only DbContext (such as TgBot etc maybe)
+builder.Services.AddDbContext<ApiDbContext>(options =>
+	options.UseNpgsql(con));
+
+//builder.Services.AddDbContext<ApiDbContext>(options =>
+//    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+
+/* 
+ * Projects services registration.
+ */
+/* Mybad.Core services registration. */
+builder.Services.AddScoped<IInfoProvider<HeroMatchupRequest, HeroMatchupResponse>, CoreHeroMatchupProvider>();
+
+/* Mybad.Storage.Db services registration. */
+builder.Services.AddDbServices();
+
+/* ODota Services registration including httpclient and info providers. */
+builder.Services.AddODotaServices();
 /*
  * End of services registartion.
  */
 
 var app = builder.Build();
+
+/* 
+ * Apply Migrations and update databse in production container.
+ * 
+ * !!! IMPORTANT !!!
+ * It works fine as long as we have only one instance of app running. 
+ * If we scale this up, applying migrations should be done in other place (another container or idk).
+ */
+if (!app.Environment.IsDevelopment())
+{
+	using var scope = app.Services.CreateAsyncScope();
+	var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+	await ctx.Database.MigrateAsync();
+
+	using var scope2 = app.Services.CreateScope();
+	var apiCtx = scope2.ServiceProvider.GetRequiredService<ApiDbContext>();
+	await apiCtx.Database.MigrateAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
