@@ -11,6 +11,49 @@
   gap: 20px;
   margin-bottom: 20px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.swap-button-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swap-btn {
+  background: #334155;
+  border: 2px solid #475569;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.swap-btn:hover {
+  border-color: #ef4444;
+  background: #1e293b;
+  transform: scale(1.1);
+}
+
+.swap-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: #475569;
+}
+
+.swap-btn:disabled:hover {
+  transform: none;
+  background: #334155;
+  border-color: #475569;
+}
+
+.swap-btn svg {
+  width: 24px;
+  height: 24px;
 }
 
 .team-panel {
@@ -35,6 +78,19 @@
 
   .teams-section {
     gap: 15px;
+  }
+
+  .swap-button-container {
+    width: 100%;
+    order: 2;
+  }
+
+  .team-panel:first-of-type {
+    order: 1;
+  }
+
+  .team-panel:last-of-type {
+    order: 3;
   }
 }
 
@@ -466,6 +522,183 @@
   color: #cbd5e1;
   letter-spacing: 2px;
   font-weight: 600;
+}
+
+/* Pool Dropdown Styles */
+.pool-dropdown-container {
+  position: relative;
+}
+
+.pool-dropdown-btn {
+  background: #475569;
+  border: 1px solid #64748b;
+  color: #cbd5e1;
+  padding: 2px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  min-width: 150px;
+  justify-content: space-between;
+}
+
+.pool-dropdown-btn:hover {
+  background: #334155;
+  border-color: #38bdf8;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.pool-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 5px;
+  background: #334155;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.pool-dropdown-item {
+  padding: 10px 16px;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pool-dropdown-item span {
+  flex: 1;
+}
+
+.pool-dropdown-item:hover {
+  background: #475569;
+}
+
+.delete-pool-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.delete-pool-btn:hover {
+  background: #ef4444;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.pool-dropdown-item.add-new {
+  color: #38bdf8;
+  font-weight: 500;
+}
+
+.pool-dropdown-item.add-new:hover {
+  background: #1e293b;
+}
+
+.pool-dropdown-divider {
+  height: 1px;
+  background: #475569;
+  margin: 5px 0;
+}
+
+/* Add Pool Dialog Styles */
+.add-pool-dialog {
+  background: #334155;
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid #475569;
+  min-width: 400px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.add-pool-dialog h3 {
+  margin: 0 0 20px 0;
+  color: #cbd5e1;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.pool-name-input {
+  width: 100%;
+  padding: 12px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.pool-name-input:focus {
+  border-color: #38bdf8;
+}
+
+.dialog-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.dialog-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.dialog-btn.cancel {
+  background: #475569;
+  color: #cbd5e1;
+}
+
+.dialog-btn.cancel:hover {
+  background: #64748b;
+}
+
+.dialog-btn.confirm {
+  background: #38bdf8;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.dialog-btn.confirm:hover {
+  background: #0ea5e9;
+}
+
+.dialog-btn.confirm:disabled {
+  background: #475569;
+  color: #64748b;
+  cursor: not-allowed;
 }
 
 /* Toggle Slider Styles */
