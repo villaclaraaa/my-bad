@@ -9,4 +9,11 @@ import { Component } from '@angular/core';
 })
 export class IndexComponent {
 
+  navigateToMatchups() {
+    window.location.href = '/matchups';
+  }
+  navigateToWardInsights() {
+    window.location.href = '/wards';
+  }
+
 }

@@ -10,11 +10,11 @@ A lightweight, data-powered tool that helps you draft better heroes and place sm
 
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-<div class="bg-slate-800/70 p-5 rounded-xl border border-slate-600 shadow-md">
+<div class="bg-slate-800/70 p-5 rounded-xl border border-slate-600 shadow-md cursor-pointer transition-all hover:-translate-y-2 hover:shadow-xl" (click)="navigateToMatchups()">
 <h3 class="text-xl font-semibold mb-1">Matchups</h3>
 <p class="text-sm text-slate-300">Instant hero suggestions based on draft patterns.</p>
 </div>
-<div class="bg-slate-800/70 p-5 rounded-xl border border-slate-600 shadow-md">
+<div class="bg-slate-800/70 p-5 rounded-xl border border-slate-600 shadow-md cursor-pointer transition-all hover:-translate-y-2 hover:shadow-xl" (click)="navigateToWardInsights()">
 <h3 class="text-xl font-semibold mb-1">Ward Insights</h3>
 <p class="text-sm text-slate-300">See which wards gave value — and which didn’t.</p>
 </div>

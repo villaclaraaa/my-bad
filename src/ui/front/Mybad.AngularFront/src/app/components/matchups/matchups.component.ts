@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeroService } from '../../services/hero.service';
@@ -28,8 +28,11 @@ export class MatchupsComponent {
 
   // Hero Pool
   heroPool = signal<Hero[]>([]);
-  poolSearchText = signal<string>('');
   isPoolEnabled = signal<boolean>(false);
+  currentPoolName = signal<string>('');
+  isPoolDropdownOpen = signal<boolean>(false);
+  isAddingNewPool = signal<boolean>(false);
+  newPoolName = '';
 
   // Picker State
   isPicking = signal<boolean>(false);
@@ -197,12 +200,31 @@ export class MatchupsComponent {
 
   // Hero Pool Management
   loadHeroPoolFromLocalStorage() {
-    const storedIds = localStorage.getItem('heroPoolIds');
-    if (storedIds) {
+    const storedData = localStorage.getItem('heroPoolIds');
+    if (storedData) {
       try {
-        const ids: number[] = JSON.parse(storedIds);
-        const poolHeroes = this.heroes().filter(hero => ids.includes(hero.id));
-        this.heroPool.set(poolHeroes);
+        const data = JSON.parse(storedData);
+        // Check if it's the new format (object with multiple pools)
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          const currentPool = this.currentPoolName();
+          if (currentPool && data[currentPool]) {
+            const poolHeroes = this.heroes().filter(hero => data[currentPool].includes(hero.id));
+            this.heroPool.set(poolHeroes);
+          } else if (!currentPool && Object.keys(data).length > 0) {
+            // If no pool selected but pools exist, select the first one
+            const firstPool = Object.keys(data)[0];
+            this.currentPoolName.set(firstPool);
+            const poolHeroes = this.heroes().filter(hero => data[firstPool].includes(hero.id));
+            this.heroPool.set(poolHeroes);
+          }
+        } else if (Array.isArray(data)) {
+          // Legacy format: migrate to new format with a default name
+          const poolHeroes = this.heroes().filter(hero => data.includes(hero.id));
+          this.heroPool.set(poolHeroes);
+          this.currentPoolName.set('My Pool');
+          // Save in new format
+          this.saveHeroPoolToLocalStorage();
+        }
       } catch (e) {
         console.error('Error loading hero pool from local storage', e);
       }
@@ -210,8 +232,25 @@ export class MatchupsComponent {
   }
 
   saveHeroPoolToLocalStorage() {
+    if (!this.currentPoolName()) return; // Don't save if no pool selected
+    
     const ids = this.heroPool().map(h => h.id);
-    localStorage.setItem('heroPoolIds', JSON.stringify(ids));
+    const storedData = localStorage.getItem('heroPoolIds');
+    let pools: { [key: string]: number[] } = {};
+    
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          pools = data;
+        }
+      } catch (e) {
+        console.error('Error parsing stored pools', e);
+      }
+    }
+    
+    pools[this.currentPoolName()] = ids;
+    localStorage.setItem('heroPoolIds', JSON.stringify(pools));
   }
 
   removeHeroFromPool(hero: Hero) {
@@ -222,6 +261,121 @@ export class MatchupsComponent {
   changeUsingHeroPool() {
     this.isPoolEnabled.set(!this.isPoolEnabled());
     this.calculateMatchups(false, false);
+  }
+  
+  swapTeams() {
+    const tempMyTeam = this.myTeam();
+    this.myTeam.set(this.enemyTeam());
+    this.enemyTeam.set(tempMyTeam); 
+    this.calculateMatchups(false, false);
+  }
+
+  // Pool Dropdown Methods
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    const dropdown = target.closest('.pool-dropdown-container');
+    
+    if (!dropdown && this.isPoolDropdownOpen()) {
+      this.isPoolDropdownOpen.set(false);
+    }
+  }
+
+  togglePoolDropdown() {
+    this.isPoolDropdownOpen.set(!this.isPoolDropdownOpen());
+  }
+
+  getPoolNames(): string[] {
+    const storedData = localStorage.getItem('heroPoolIds');
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          return Object.keys(data);
+        }
+      } catch (e) {
+        console.error('Error getting pool names', e);
+      }
+    }
+    return [];
+  }
+
+  selectPool(poolName: string) {
+    this.currentPoolName.set(poolName);
+    this.isPoolDropdownOpen.set(false);
+    this.loadHeroPoolFromLocalStorage();
+    this.calculateMatchups(false, false);
+  }
+
+  openAddPoolDialog() {
+    this.isPoolDropdownOpen.set(false);
+    this.isAddingNewPool.set(true);
+    this.newPoolName = '';
+  }
+
+  cancelAddPool() {
+    this.isAddingNewPool.set(false);
+    this.newPoolName = '';
+  }
+
+  confirmAddPool() {
+    if (!this.newPoolName.trim()) return;
+    
+    const poolName = this.newPoolName.trim();
+    const storedData = localStorage.getItem('heroPoolIds');
+    let pools: { [key: string]: number[] } = {};
+    
+    if (storedData) {
+      try {
+        const data = JSON.parse(storedData);
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          pools = data;
+        }
+      } catch (e) {
+        console.error('Error parsing stored pools', e);
+      }
+    }
+    
+    pools[poolName] = [];
+    localStorage.setItem('heroPoolIds', JSON.stringify(pools));
+    
+    this.currentPoolName.set(poolName);
+    this.heroPool.set([]);
+    this.isAddingNewPool.set(false);
+    this.newPoolName = '';
+    this.calculateMatchups(false, false);
+  }
+
+  deletePool(poolName: string, event: Event) {
+    event.stopPropagation(); // Prevent triggering selectPool
+    
+    const storedData = localStorage.getItem('heroPoolIds');
+    if (!storedData) return;
+    
+    try {
+      const data = JSON.parse(storedData);
+      if (typeof data === 'object' && !Array.isArray(data)) {
+        delete data[poolName];
+        localStorage.setItem('heroPoolIds', JSON.stringify(data));
+        
+        // If deleted pool was the current one, reset
+        if (this.currentPoolName() === poolName) {
+          const remainingPools = Object.keys(data);
+          if (remainingPools.length > 0) {
+            // Select first remaining pool
+            this.currentPoolName.set(remainingPools[0]);
+            this.loadHeroPoolFromLocalStorage();
+          } else {
+            // No pools left
+            this.currentPoolName.set('');
+            this.heroPool.set([]);
+          }
+          this.calculateMatchups(false, false);
+        }
+      }
+    } catch (e) {
+      console.error('Error deleting pool', e);
+    }
   }
 }
  
