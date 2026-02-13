@@ -17,7 +17,7 @@ public class MatchupService : IMatchupService
     /// <inheritdoc />
     public async Task UpdateMatchups(
         Dictionary<(int HeroId, int OtherHeroId), GamesResultsStat> heroStats,
-        bool isEnemyMatchup)
+        bool isEnemyMatchup, int patchId)
     {
         var keys = heroStats.Keys.ToList();
         if (!keys.Any())
@@ -29,7 +29,7 @@ public class MatchupService : IMatchupService
         if (isEnemyMatchup)
         {
             var existingMatchups = await _dbContext.HeroMatchupEnemies
-                .Where(hm => heroIds.Contains(hm.HeroId) && otherIds.Contains(hm.OtherHeroId))
+                .Where(hm => heroIds.Contains(hm.HeroId) && otherIds.Contains(hm.OtherHeroId) && hm.PatchId == patchId)
                 .ToListAsync();
 
             foreach (var kv in heroStats)
@@ -52,7 +52,8 @@ public class MatchupService : IMatchupService
                         HeroId = key.HeroId,
                         OtherHeroId = key.OtherHeroId,
                         Wins = stat.Wins,
-                        GamesPlayed = stat.GamesPlayed
+                        GamesPlayed = stat.GamesPlayed,
+                        PatchId = patchId
                     });
                 }
             }
@@ -60,7 +61,7 @@ public class MatchupService : IMatchupService
         else
         {
             var existingMatchups = await _dbContext.HeroMatchupAllies
-                .Where(hm => heroIds.Contains(hm.HeroId) && otherIds.Contains(hm.OtherHeroId))
+                .Where(hm => heroIds.Contains(hm.HeroId) && otherIds.Contains(hm.OtherHeroId) && hm.PatchId == patchId)
                 .ToListAsync();
 
             foreach (var kv in heroStats)
@@ -83,7 +84,8 @@ public class MatchupService : IMatchupService
                         HeroId = key.HeroId,
                         OtherHeroId = key.OtherHeroId,
                         Wins = stat.Wins,
-                        GamesPlayed = stat.GamesPlayed
+                        GamesPlayed = stat.GamesPlayed,
+                        PatchId = patchId
                     });
                 }
             }
@@ -93,12 +95,17 @@ public class MatchupService : IMatchupService
     }
 
     /// <inheritdoc />
-    public async Task<List<HeroMatchupModel>> CalcutaleBestMatchupVersusEnemies(List<int> ids, List<int>? heroesInPool)
+    public async Task<List<HeroMatchupModel>> CalcutaleBestMatchupVersusEnemies(List<int> ids, List<int>? heroesInPool, int? patchId)
     {
         var matchupsEnemies = await _dbContext.HeroMatchupEnemies
             .Where(hm => ids.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
             .Where(hm => !ids.Contains(hm.HeroId))
             .ToListAsync();
+
+        if (patchId != null)
+        {
+            matchupsEnemies = matchupsEnemies.Where(hm => hm.PatchId == patchId).ToList();
+        }
 
         if (heroesInPool != null)
         {
@@ -114,12 +121,17 @@ public class MatchupService : IMatchupService
     }
 
     /// <inheritdoc />
-    public async Task<List<HeroMatchupModel>> CalcutaleBestMatchupWithAllies(List<int> ids, List<int>? heroesInPool)
+    public async Task<List<HeroMatchupModel>> CalcutaleBestMatchupWithAllies(List<int> ids, List<int>? heroesInPool, int? patchId)
     {
         var matchupsAllies = await _dbContext.HeroMatchupAllies
            .Where(hm => ids.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
            .Where(hm => !ids.Contains(hm.HeroId))
            .ToListAsync();
+
+        if (patchId != null)
+        {
+            matchupsAllies = matchupsAllies.Where(hm => hm.PatchId == patchId).ToList();
+        }
 
         if (heroesInPool != null)
         {
@@ -135,13 +147,18 @@ public class MatchupService : IMatchupService
     }
 
     /// <inheritdoc />
-    public async Task<List<HeroMatchupModel>> CalcutaleBestMatchupCombined(List<int> enemyIds, List<int> allyIds, List<int>? heroesInPool)
+    public async Task<List<HeroMatchupModel>> CalcutaleBestMatchupCombined(List<int> enemyIds, List<int> allyIds, List<int>? heroesInPool, int? patchId)
     {
         var matchupsEnemies = await _dbContext.HeroMatchupEnemies
             .Where(hm => enemyIds.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
             .Where(hm => !enemyIds.Contains(hm.HeroId))
             .Where(hm => !allyIds.Contains(hm.HeroId))
             .ToListAsync();
+
+        if (patchId != null)
+        {
+            matchupsEnemies = matchupsEnemies.Where(hm => hm.PatchId == patchId).ToList();
+        }
 
         if (heroesInPool != null)
         {
@@ -153,6 +170,11 @@ public class MatchupService : IMatchupService
             .Where(hm => !allyIds.Contains(hm.HeroId))
             .Where(hm => !enemyIds.Contains(hm.HeroId))
             .ToListAsync();
+
+        if (patchId != null)
+        {
+            matchupsAllies = matchupsAllies.Where(hm => hm.PatchId == patchId).ToList();
+        }
 
         if (heroesInPool != null)
         {

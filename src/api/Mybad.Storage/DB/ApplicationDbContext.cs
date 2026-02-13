@@ -38,7 +38,7 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<HeroMatchupEntity>(hm =>
         {
-            hm.HasKey(hm => new { hm.HeroId, hm.OtherHeroId });
+            hm.HasKey(hm => new { hm.HeroId, hm.OtherHeroId, hm.PatchId });
             hm.UseTpcMappingStrategy(); // this tells to create two separate tables for matchups
             hm.ToTable((string?)null);
         });
@@ -56,7 +56,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<HeroMatchesEntity>(cm =>
         {
             cm.ToTable("heroes_matches_counts");
-            cm.HasKey(hm => new { hm.HeroId });
+            cm.HasKey(hm => new { hm.HeroId, hm.PatchId });
         });
     }
 }

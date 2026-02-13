@@ -1,4 +1,3 @@
-using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Mybad.API.Endpoints;
 using Mybad.API.Services;
@@ -11,6 +10,7 @@ using Mybad.Services.OpenDota;
 using Mybad.Services.OpenDota.Cachers;
 using Mybad.Storage.DB;
 using Mybad.Storage.DB.Services;
+using System.Threading.RateLimiting;
 using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,32 +20,36 @@ var builder = WebApplication.CreateBuilder(args);
  */
 builder.Services.AddSingleton<HeroMatchupCacherStatus>();
 
+builder.Services.AddSingleton<PatchService>();
+
+builder.Services.AddHostedService<PatchGetterHostedService>();
 // Register some stuff only in Prod env.
-if (!builder.Environment.IsDevelopment())
+if (builder.Environment.IsProduction())
 {
-	builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
+    builder.Services.AddHostedService<HeroMatchupCacherHostedService>();
 
-	// Configuring Rate Limiting Middleware
-	var timespanSeconds = builder.Configuration.GetValue<int>("RateLimit:TimespanSeconds");
-	var requestCount = builder.Configuration.GetValue<int>("RateLimit:RequestsCount");
-	builder.Services.AddRateLimiter(options =>
-	{
-		options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
-			RateLimitPartition.GetFixedWindowLimiter(
-				partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-				factory: partition => new FixedWindowRateLimiterOptions
-				{
-					PermitLimit = requestCount,
-					Window = TimeSpan.FromSeconds(timespanSeconds)
-				}));
 
-		options.OnRejected = async (context, token) =>
-		{
-			context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-			context.HttpContext.Response.Headers.RetryAfter = $"{timespanSeconds}";
-			await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", token);
-		};
-	});
+    // Configuring Rate Limiting Middleware
+    var timespanSeconds = builder.Configuration.GetValue<int>("RateLimit:TimespanSeconds");
+    var requestCount = builder.Configuration.GetValue<int>("RateLimit:RequestsCount");
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: partition => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = requestCount,
+                    Window = TimeSpan.FromSeconds(timespanSeconds)
+                }));
+
+        options.OnRejected = async (context, token) =>
+        {
+            context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+            context.HttpContext.Response.Headers.RetryAfter = $"{timespanSeconds}";
+            await context.HttpContext.Response.WriteAsync("Rate limit exceeded. Please try again later.", token);
+        };
+    });
 }
 
 // Setup TgBot News
@@ -62,13 +66,13 @@ builder.Services.AddSwaggerGen();
 // CORS (Added by Andrew due to a problem sending a request to Api)
 builder.Services.AddCors(options =>
 {
-	options.AddPolicy("AllowAngularApp", policy =>
-	{
-		policy.WithOrigins("http://localhost:63512") // Angular app URL
-			  .AllowAnyHeader()
-			  .AllowAnyMethod()
-			  .AllowCredentials();
-	});
+    options.AddPolicy("AllowAngularApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:63512") // Angular app URL
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
 });
 
 /* 
@@ -76,14 +80,14 @@ builder.Services.AddCors(options =>
  */
 var con = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-	options.UseNpgsql(con));
+    options.UseNpgsql(con));
 
 //builder.Services.AddDbContext<ApplicationDbContext>(options =>
 //    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
 // Setup API only DbContext (such as TgBot etc maybe)
 builder.Services.AddDbContext<ApiDbContext>(options =>
-	options.UseNpgsql(con));
+    options.UseNpgsql(con));
 
 //builder.Services.AddDbContext<ApiDbContext>(options =>
 //    options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
@@ -114,20 +118,20 @@ var app = builder.Build();
  */
 if (!app.Environment.IsDevelopment())
 {
-	using var scope = app.Services.CreateAsyncScope();
-	var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-	await ctx.Database.MigrateAsync();
+    using var scope = app.Services.CreateAsyncScope();
+    var ctx = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await ctx.Database.MigrateAsync();
 
-	using var scope2 = app.Services.CreateScope();
-	var apiCtx = scope2.ServiceProvider.GetRequiredService<ApiDbContext>();
-	await apiCtx.Database.MigrateAsync();
+    using var scope2 = app.Services.CreateScope();
+    var apiCtx = scope2.ServiceProvider.GetRequiredService<ApiDbContext>();
+    await apiCtx.Database.MigrateAsync();
 }
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
@@ -141,7 +145,7 @@ app.UseCors("AllowAngularApp");
 
 if (!app.Environment.IsDevelopment())
 {
-	app.UseRateLimiter();
+    app.UseRateLimiter();
 }
 
 app.MapWardEndpoints();
@@ -151,12 +155,18 @@ app.MapPlayerEndpoints();
 app.MapTgBotEndpoints(webhookURL);
 
 app.MapGet("/test", () => "alive alive ya, xarosh");
+
+app.MapGet("/patchTest", async (PatchService p) =>
+{
+    await p.SyncronizePatchInfo();
+});
+
 app.MapGet("/cacheOnce", async (ODotaHeroMatchupCacher cacher) =>
 {
-	await cacher.UpdateHeroMatchupsDatabase(75);
-	return "success";
+    await cacher.UpdateHeroMatchupsDatabase(75);
+    return "success";
 })
-	.AddEndpointFilter<ApiKeyEndpointFilter>();
+    .AddEndpointFilter<ApiKeyEndpointFilter>();
 
 app.MapFallbackToFile("index.html");
 

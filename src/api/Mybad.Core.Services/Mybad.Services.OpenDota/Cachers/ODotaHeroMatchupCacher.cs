@@ -2,6 +2,7 @@
 using Mybad.Core.Services;
 using Mybad.Services.OpenDota.ApiResponseModels;
 using System.Net.Http.Json;
+using System.Text.Json.Nodes;
 using GamesResultsStat = Mybad.Core.Providers.CoreHeroMatchupProvider.GamesResultsStat;
 
 namespace Mybad.Services.OpenDota.Cachers
@@ -31,6 +32,8 @@ namespace Mybad.Services.OpenDota.Cachers
 
             var heroMatchesStats = new Dictionary<int, GamesResultsStat>(); //stores heroID and its winrate
 
+            int patchId = 59; //dafault value, 7.40 patch
+
             for (int i = 0; i < 1; i++)
             {
                 var response = await http.GetFromJsonAsync<List<PublicMatchModel>>($"publicMatches?min_rank={minRank}");
@@ -41,6 +44,14 @@ namespace Mybad.Services.OpenDota.Cachers
                 }
                 var uncheckedMatches = await _checkedMatchesService.FilterAlreadyCheckedMatches(response.Select(r => r.MatchId).ToList());
                 var uncheckedSet = new HashSet<long>(uncheckedMatches);
+
+                var firstGameId = response.FirstOrDefault()?.MatchId;
+                var jsonNode = await http.GetFromJsonAsync<JsonNode>($"matches/{firstGameId}");
+
+                if (jsonNode != null)
+                {
+                    patchId = jsonNode["patch"].GetValue<int>();
+                }
 
                 foreach (var game in response.Where(g => uncheckedSet.Contains(g.MatchId)))
                 {
@@ -92,7 +103,7 @@ namespace Mybad.Services.OpenDota.Cachers
 
                 await Task.Delay(1000);
 
-                await _checkedMatchesService.AddCheckedMatches(uncheckedMatches);
+                await _checkedMatchesService.AddCheckedMatches(uncheckedMatches, patchId);
             }
 
             /* This is used to have 2 different matchupServices that contains two different DbContexts
@@ -100,13 +111,13 @@ namespace Mybad.Services.OpenDota.Cachers
 			 */
             using var scope1 = _sp.CreateScope();
             var service1 = scope1.ServiceProvider.GetRequiredService<IMatchupService>();
-            await service1.UpdateMatchups(heroStatsEnemy, true);
+            await service1.UpdateMatchups(heroStatsEnemy, isEnemyMatchup: true, patchId: patchId);
 
             using var scope2 = _sp.CreateScope();
             var service2 = scope2.ServiceProvider.GetRequiredService<IMatchupService>();
-            await service2.UpdateMatchups(heroStatsAlly, false);
+            await service2.UpdateMatchups(heroStatsAlly, isEnemyMatchup: false, patchId: patchId);
 
-            await _heroMatchesService.UpdateHeroMatches(heroMatchesStats);
+            await _heroMatchesService.UpdateHeroMatches(heroMatchesStats, patchId);
         }
         private static void UpdateStats(Dictionary<(int, int), GamesResultsStat> dict, int heroA, int heroB, bool didHeroAWin)
         {

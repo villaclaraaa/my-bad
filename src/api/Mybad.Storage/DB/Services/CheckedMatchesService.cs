@@ -17,9 +17,9 @@ public class CheckedMatchesService : ICheckedMatchesService
     public long CheckedMatchesCount => _context.CheckedMatches.LongCount();
 
     /// <inheritdoc />
-    public async Task AddCheckedMatches(List<long> checkedMatches)
+    public async Task AddCheckedMatches(List<long> checkedMatches, int patchId)
     {
-        var entries = checkedMatches.Select(id => new CheckedMatchMatchupEntity { MatchId = id });
+        var entries = checkedMatches.Select(id => new CheckedMatchMatchupEntity { MatchId = id, PatchId = patchId });
         _context.CheckedMatches.AddRange(entries);
         await _context.SaveChangesAsync();
     }

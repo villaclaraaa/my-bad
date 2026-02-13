@@ -14,7 +14,7 @@ namespace Mybad.Core.Services
         /// </summary>
         /// <param name="heroMatches">A dictionary where the key is the hero ID and the value is the corresponding game results statistics.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
-        Task UpdateHeroMatches(Dictionary<int, GamesResultsStat> heroMatches);
+        Task UpdateHeroMatches(Dictionary<int, GamesResultsStat> heroMatches, int patchId);
 
         /// <summary>
         /// Retrieves statistical data for matches played by a specific hero.
