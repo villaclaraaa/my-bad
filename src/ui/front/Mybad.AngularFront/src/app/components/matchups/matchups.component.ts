@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, HostListener } from '@angular/core
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HeroService } from '../../services/hero.service';
+import { PatchService } from '../../services/patch.service';
 import { Hero } from '../../models/hero.interface';
 import { HeroMatchup } from '../../models/matchup.interface';
 import { LoadingspinnerComponent } from "../../overlay/loadingspinner/loadingspinner.component";
@@ -18,9 +19,15 @@ import { HeronamespipePipe } from '../../pipes/heronamespipe.pipe';
 })
 export class MatchupsComponent {
   private heroService = inject(HeroService);
+  private patchService = inject(PatchService);
 
   heroes = signal<Hero[]>([]);
   searchText = signal<string>('');
+
+  // Patch Selection
+  selectedPatch = signal<string>('all');
+  patchNames = signal<string[]>([]);
+  isPatchDropdownOpen = signal<boolean>(false);
 
   // Teams
   myTeam = signal<Hero[]>([]);
@@ -52,6 +59,10 @@ export class MatchupsComponent {
     this.heroService.getHeroes().subscribe((data: Hero[]) => {
       this.heroes.set(data);
       this.loadHeroPoolFromLocalStorage();
+    });
+    
+    this.patchService.getAllPatchNames().subscribe((patches: string[]) => {
+      this.patchNames.set(patches);
     });
   }
 
@@ -159,7 +170,7 @@ export class MatchupsComponent {
 
         if (!this.isLoadingAlly()) {
           this.isLoadingAlly.set(true);
-          this.heroService.findBestHeroes(allyIdsOrNull, null, poolIdsOrNull).subscribe(res => {
+          this.heroService.findBestHeroes(allyIdsOrNull, null, poolIdsOrNull, this.selectedPatch()).subscribe(res => {
             this.bestAlly.set(res.matchup.slice(0, 10));
             this.isLoadingAlly.set(false);
           });
@@ -174,7 +185,7 @@ export class MatchupsComponent {
       if (!skipEnemies) {
         if (!this.isLoadingVersus()) {
           this.isLoadingVersus.set(true);
-          this.heroService.findBestHeroes(null, enemyIdsOrNull, poolIdsOrNull).subscribe(res => {
+          this.heroService.findBestHeroes(null, enemyIdsOrNull, poolIdsOrNull, this.selectedPatch()).subscribe(res => {
             this.bestVersus.set(res.matchup.slice(0, 10));
             this.isLoadingVersus.set(false);
           });
@@ -188,7 +199,7 @@ export class MatchupsComponent {
     if (allyIds.length > 0 || enemyIds.length > 0) {
       if (!this.isLoadingComputed()) {
         this.isLoadingComputed.set(true);
-        this.heroService.findBestHeroes(allyIdsOrNull, enemyIdsOrNull, poolIdsOrNull).subscribe(res => {
+        this.heroService.findBestHeroes(allyIdsOrNull, enemyIdsOrNull, poolIdsOrNull, this.selectedPatch()).subscribe(res => {
           this.bestComputed.set(res.matchup.slice(0, 10));
           this.isLoadingComputed.set(false);
         });
@@ -274,15 +285,34 @@ export class MatchupsComponent {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    const dropdown = target.closest('.pool-dropdown-container');
+    const poolDropdown = target.closest('.pool-dropdown-container');
+    const patchDropdown = target.closest('.patch-dropdown-container');
     
-    if (!dropdown && this.isPoolDropdownOpen()) {
+    if (!poolDropdown && this.isPoolDropdownOpen()) {
       this.isPoolDropdownOpen.set(false);
+    }
+    
+    if (!patchDropdown && this.isPatchDropdownOpen()) {
+      this.isPatchDropdownOpen.set(false);
     }
   }
 
   togglePoolDropdown() {
     this.isPoolDropdownOpen.set(!this.isPoolDropdownOpen());
+  }
+
+  togglePatchDropdown() {
+    this.isPatchDropdownOpen.set(!this.isPatchDropdownOpen());
+  }
+
+  selectPatch(patchName: string) {
+    this.selectedPatch.set(patchName);
+    this.isPatchDropdownOpen.set(false);
+    this.calculateMatchups(false, false);
+  }
+
+  getSelectedPatchDisplay(): string {
+    return this.selectedPatch() === 'all' ? 'All Patches' : this.selectedPatch();
   }
 
   getPoolNames(): string[] {

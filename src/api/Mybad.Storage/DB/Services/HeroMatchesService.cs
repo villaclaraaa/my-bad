@@ -30,7 +30,7 @@ namespace Mybad.Storage.DB.Services
         }
 
         /// <inheritdoc/>
-        public async Task UpdateHeroMatches(Dictionary<int, GamesResultsStat> heroMatches)
+        public async Task UpdateHeroMatches(Dictionary<int, GamesResultsStat> heroMatches, int patchId)
         {
             if (heroMatches == null || !heroMatches.Any())
                 return;
@@ -38,7 +38,7 @@ namespace Mybad.Storage.DB.Services
             var heroIds = heroMatches.Keys.ToList();
 
             var existingHeroes = await _dbContext.HeroesMatches
-                .Where(h => heroIds.Contains(h.HeroId))
+                .Where(h => heroIds.Contains(h.HeroId) && h.PatchId == patchId)
                 .ToListAsync();
 
             foreach (var kv in heroMatches)
@@ -61,6 +61,7 @@ namespace Mybad.Storage.DB.Services
                         HeroId = heroId,
                         TotalWins = stats.Wins,
                         TotalGamesPlayed = stats.GamesPlayed
+
                     });
 
                 }

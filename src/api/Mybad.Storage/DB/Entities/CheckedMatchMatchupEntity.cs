@@ -3,5 +3,6 @@
     public class CheckedMatchMatchupEntity
     {
         public long MatchId { get; set; }
+        public int PatchId { get; set; }
     }
 }

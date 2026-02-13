@@ -2,6 +2,7 @@
 using Mybad.Core;
 using Mybad.Core.Requests;
 using Mybad.Core.Responses;
+using Mybad.Core.Services;
 
 namespace Mybad.API.Endpoints
 {
@@ -14,6 +15,9 @@ namespace Mybad.API.Endpoints
                 .RequireCors("AllowAngularApp");
 
             group.MapPost("find", FindBestHeroes)
+                .Produces(200);
+
+            group.MapGet("patches", GetPatchNames)
                 .Produces(200);
 
             // Background service cacher related endpoints
@@ -30,6 +34,12 @@ namespace Mybad.API.Endpoints
             return group;
         }
 
+        private static IResult GetPatchNames(PatchService patchService)
+        {
+            var patchNames = patchService.GetAllPatchNames();
+            return TypedResults.Ok(patchNames);
+        }
+
         private static IResult StopCacher(HeroMatchupCacherStatus cacherStatus)
         {
             cacherStatus.IsEnabled = false;
@@ -43,9 +53,15 @@ namespace Mybad.API.Endpoints
         }
 
         private static async Task<IResult> FindBestHeroes(HeroMatchupsRequestModel model,
-            IInfoProvider<HeroMatchupRequest, HeroMatchupResponse> provider)
+            IInfoProvider<HeroMatchupRequest, HeroMatchupResponse> provider, PatchService patchService)
         {
-            var request = new HeroMatchupRequest() { EnemyIds = model.EnemyIds, AllyIds = model.AllyIds, HeroesInPool = model.HeroesInPool };
+            var request = new HeroMatchupRequest()
+            {
+                EnemyIds = model.EnemyIds,
+                AllyIds = model.AllyIds,
+                HeroesInPool = model.HeroesInPool,
+                patchId = patchService.ConvertPatchNameToId(model.patchStr!)
+            };
             var response = await provider.GetInfoAsync(request);
             return TypedResults.Ok(response);
         }
@@ -56,6 +72,7 @@ namespace Mybad.API.Endpoints
         public List<int>? EnemyIds { get; set; }
         public List<int>? AllyIds { get; set; }
         public List<int>? HeroesInPool { get; set; }
+        public string? patchStr { get; set; }
     }
 
 }
