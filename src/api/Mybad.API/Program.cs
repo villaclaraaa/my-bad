@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Mybad.API.Endpoints;
 using Mybad.API.Services;
@@ -10,7 +11,6 @@ using Mybad.Services.OpenDota;
 using Mybad.Services.OpenDota.Cachers;
 using Mybad.Storage.DB;
 using Mybad.Storage.DB.Services;
-using System.Threading.RateLimiting;
 using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,6 +66,10 @@ builder.Services.AddSwaggerGen();
 // CORS (Added by Andrew due to a problem sending a request to Api)
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("AllowAnyOrigin", policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    });
     options.AddPolicy("AllowAngularApp", policy =>
     {
         policy.WithOrigins("http://localhost:63512") // Angular app URL
