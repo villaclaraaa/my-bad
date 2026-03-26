@@ -66,6 +66,7 @@ builder.Services.AddSwaggerGen();
 // CORS (Added by Andrew due to a problem sending a request to Api)
 builder.Services.AddCors(options =>
 {
+    // TODO - remove this when pushing new version.
     options.AddPolicy("AllowAnyOrigin", policy =>
     {
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();

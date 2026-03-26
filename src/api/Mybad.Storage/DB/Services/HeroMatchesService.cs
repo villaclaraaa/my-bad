@@ -60,8 +60,8 @@ namespace Mybad.Storage.DB.Services
                     {
                         HeroId = heroId,
                         TotalWins = stats.Wins,
-                        TotalGamesPlayed = stats.GamesPlayed
-
+                        TotalGamesPlayed = stats.GamesPlayed,
+                        PatchId = patchId
                     });
 
                 }
