@@ -1,4 +1,3 @@
-using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Mybad.API.Endpoints;
 using Mybad.API.Services;
@@ -11,10 +10,17 @@ using Mybad.Services.OpenDota;
 using Mybad.Services.OpenDota.Cachers;
 using Mybad.Storage.DB;
 using Mybad.Storage.DB.Services;
+using Serilog;
+using System.Threading.RateLimiting;
 using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 /* 
  * API (current project) services registration. 
  */

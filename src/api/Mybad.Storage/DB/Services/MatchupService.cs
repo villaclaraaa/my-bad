@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Mybad.Core.Providers.CoreHeroMatchupProvider;
 using Mybad.Core.Services;
 using Mybad.Storage.DB.Entities;
@@ -8,10 +9,12 @@ namespace Mybad.Storage.DB.Services;
 public class MatchupService : IMatchupService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly ILogger<MatchupService> _logger;
     private const int _minGames = 10;
-    public MatchupService(ApplicationDbContext dbContext)
+    public MatchupService(ApplicationDbContext dbContext, ILogger<MatchupService> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -101,10 +104,12 @@ public class MatchupService : IMatchupService
             .Where(hm => ids.Contains(hm.OtherHeroId) && hm.GamesPlayed >= _minGames)
             .Where(hm => !ids.Contains(hm.HeroId))
             .ToListAsync();
+        var matchesStats = await _dbContext.HeroesMatches.ToListAsync();
 
         if (patchId != null)
         {
             matchupsEnemies = matchupsEnemies.Where(hm => hm.PatchId == patchId).ToList();
+            matchesStats = matchesStats.Where(hm => hm.PatchId == patchId).ToList();
         }
 
         if (heroesInPool != null)
@@ -112,7 +117,6 @@ public class MatchupService : IMatchupService
             matchupsEnemies = matchupsEnemies.Where(me => heroesInPool.Contains(me.HeroId)).ToList();
         }
 
-        var matchesStats = await _dbContext.HeroesMatches.ToListAsync();
 
         var heroRatings = ComputeHeroRatings(matchupsEnemies, matchesStats, isEnemyData: true);
 
@@ -128,9 +132,11 @@ public class MatchupService : IMatchupService
            .Where(hm => !ids.Contains(hm.HeroId))
            .ToListAsync();
 
+        var matchesStats = await _dbContext.HeroesMatches.ToListAsync();
         if (patchId != null)
         {
             matchupsAllies = matchupsAllies.Where(hm => hm.PatchId == patchId).ToList();
+            matchesStats = matchesStats.Where(hm => hm.PatchId == patchId).ToList();
         }
 
         if (heroesInPool != null)
@@ -138,7 +144,6 @@ public class MatchupService : IMatchupService
             matchupsAllies = matchupsAllies.Where(me => heroesInPool.Contains(me.HeroId)).ToList();
         }
 
-        var matchesStats = await _dbContext.HeroesMatches.ToListAsync();
 
         var heroRatings = ComputeHeroRatings(matchupsAllies, matchesStats, isEnemyData: false);
 
@@ -171,9 +176,14 @@ public class MatchupService : IMatchupService
             .Where(hm => !enemyIds.Contains(hm.HeroId))
             .ToListAsync();
 
+        var enemyMatchesStats = await _dbContext.HeroesMatches.ToListAsync();
+        var allyMatchesStats = await _dbContext.HeroesMatches.ToListAsync();
+
         if (patchId != null)
         {
             matchupsAllies = matchupsAllies.Where(hm => hm.PatchId == patchId).ToList();
+            enemyMatchesStats = enemyMatchesStats.Where(hm => hm.PatchId == patchId).ToList();
+            allyMatchesStats = allyMatchesStats.Where(hm => hm.PatchId == patchId).ToList();
         }
 
         if (heroesInPool != null)
@@ -181,8 +191,6 @@ public class MatchupService : IMatchupService
             matchupsAllies = matchupsAllies.Where(me => heroesInPool.Contains(me.HeroId)).ToList();
         }
 
-        var enemyMatchesStats = await _dbContext.HeroesMatches.ToListAsync();
-        var allyMatchesStats = await _dbContext.HeroesMatches.ToListAsync();
 
         var enemyHeroRatings = ComputeHeroRatings(matchupsEnemies, enemyMatchesStats, isEnemyData: true);
         var allyHeroRatings = ComputeHeroRatings(matchupsAllies, allyMatchesStats, isEnemyData: false);
@@ -218,7 +226,7 @@ public class MatchupService : IMatchupService
         where T : HeroMatchupEntity where G : HeroMatchesEntity
     {
         // m.heroId - vs pickedHero, m.OhterHeroId - picked hero
-        var heroData = new Dictionary<int, List<(double WinRate, int Games)>>();
+        var heroData = new Dictionary<int, List<(double WinRate, int Games)>>(); // list of winrates for all heroes vs picked heroes
 
         // Step 1: Group matchup data by hero
         foreach (var m in matchups)
